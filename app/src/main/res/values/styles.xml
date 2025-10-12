@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="TextAppearance.Account.Label">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/account_label_gray</item>
+    </style>
+
+    <style name="TextAppearance.Account.Value">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.Account.Title" parent="TextAppearance.MaterialComponents.Body1">
+    <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Compatibility style referenced by resources; base appearance for account texts -->
+    <style name="TextAppearance.Account" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/account_label_gray</item>
+    </style>
+
+    <style name="Widget.Account.EditButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:backgroundTint">@color/accent_black</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="cornerRadius">4dp</item>
+    </style>
+
+    <!-- Bottom Navigation Text Styles -->
+    <style name="BottomNavTextActive" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="BottomNavTextInactive" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">#6B6B6B</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+</resources>
