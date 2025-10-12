@@ -12,6 +12,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.hofang.bookchainfe.R;
 
@@ -29,30 +30,19 @@ public class AddressListFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        // Hide bottom navigation when entering Address List screen
+        if (getActivity() != null) {
+            View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
+            if (bottomNav != null) {
+                bottomNav.setVisibility(View.GONE);
+            }
+        }
         return inflater.inflate(R.layout.fragment_address_list, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Handle window insets for bottom navigation
-        View bottomNav = view.findViewById(R.id.bottom_navigation);
-        if (bottomNav != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, insets) -> {
-                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-                // Apply bottom padding to avoid system navigation bar overlap
-                v.setPadding(
-                    v.getPaddingLeft(),
-                    v.getPaddingTop(),
-                    v.getPaddingRight(),
-                    systemBars.bottom
-                );
-
-                return insets;
-            });
-        }
 
         // Set up Add New Address button
         MaterialButton btnAddNewAddress = view.findViewById(R.id.btn_add_new_address);
@@ -83,6 +73,18 @@ public class AddressListFragment extends Fragment {
                 // Handle delete address
                 // Show confirmation dialog
             });
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Show bottom navigation when leaving Address List screen
+        if (getActivity() != null) {
+            View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
+            if (bottomNav != null) {
+                bottomNav.setVisibility(View.VISIBLE);
+            }
         }
     }
 }

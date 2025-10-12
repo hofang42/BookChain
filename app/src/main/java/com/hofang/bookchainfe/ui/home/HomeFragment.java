@@ -34,14 +34,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Setup button to navigate to Address List
-        MaterialButton btnGoToAddress = view.findViewById(R.id.btn_go_to_address);
-        if (btnGoToAddress != null) {
-            btnGoToAddress.setOnClickListener(v -> {
-                NavController navController = Navigation.findNavController(v);
-                navController.navigate(R.id.action_home_to_address);
-            });
-        }
+        // Initialize views here
     }
 }
