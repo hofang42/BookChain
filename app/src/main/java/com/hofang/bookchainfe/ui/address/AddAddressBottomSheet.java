@@ -1,6 +1,5 @@
 package com.hofang.bookchainfe.ui.address;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,19 +33,22 @@ public class AddAddressBottomSheet extends BottomSheetDialogFragment {
         final View progress = view.findViewById(R.id.progress_indicator);
 
         add.setOnClickListener(v -> {
-            // show local spinner next to buttons so the loading indicator appears in the expected place
+            // Show local spinner next to buttons so the loading indicator appears in the expected place
             if (progress != null) progress.setVisibility(View.VISIBLE);
-            if (getActivity() != null) {
-                Intent intent = new Intent(getActivity(), AddAddressActivity.class);
-                intent.putExtra("street", street != null && street.getText() != null ? street.getText().toString() : "");
-                intent.putExtra("city", city != null && city.getText() != null ? city.getText().toString() : "");
-                intent.putExtra("postal", postal != null && postal.getText() != null ? postal.getText().toString() : "");
-                intent.putExtra("save", saveCheck != null && saveCheck.isChecked());
-                startActivity(intent);
-                // hide spinner and dismiss
-                if (progress != null) progress.setVisibility(View.GONE);
-                dismiss();
-            }
+
+            // In a real app, you would save the address to database/API here
+            // For now, just simulate saving and dismiss
+            String streetText = street != null && street.getText() != null ? street.getText().toString() : "";
+            String cityText = city != null && city.getText() != null ? city.getText().toString() : "";
+            String postalText = postal != null && postal.getText() != null ? postal.getText().toString() : "";
+            boolean shouldSave = saveCheck != null && saveCheck.isChecked();
+
+            // TODO: Save address to database/API
+            // addressRepository.saveAddress(new Address(streetText, cityText, postalText, shouldSave));
+
+            // Hide spinner and dismiss
+            if (progress != null) progress.setVisibility(View.GONE);
+            dismiss();
         });
 
         cancel.setOnClickListener(v -> dismiss());
