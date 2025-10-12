@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="account_card_gray">#E9E9E9</color>
+    <color name="account_label_gray">#8A8A8A</color>
+    <color name="accent_black">#000000</color>
+    <color name="accent_light">#F5F5F5</color>
 </resources>
