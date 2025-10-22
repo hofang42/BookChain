@@ -44,4 +44,18 @@
         <item name="android:textStyle">normal</item>
     </style>
 
+    <style name="CustomBottomSheetDialogTheme" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/CustomBottomSheet</item>
+    </style>
+
+    <style name="CustomBottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="android:background">@drawable/bottom_sheet_bg</item>
+    </style>
+
+    <style name="TextAppearance.Custom.Chip" parent="TextAppearance.MaterialComponents.Chip">
+        <item name="android:textColor">@color/chip_text_color_selector</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
 </resources>

@@ -6,4 +6,5 @@
     <color name="account_label_gray">#8A8A8A</color>
     <color name="accent_black">#000000</color>
     <color name="accent_light">#F5F5F5</color>
+    <color name="gray_border">#DEDEDE</color>
 </resources>

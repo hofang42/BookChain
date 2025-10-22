@@ -1,32 +1,179 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:fillViewport="true"
+    android:background="#FFFFFF"
     tools:context=".ui.home.HomeFragment">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        app:title="Home"
-        app:titleCentered="true"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/main_placeholder"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Home Fragment"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="Happy Reading!"
+                android:textColor="#000000"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btn_home_search"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_search"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                app:tint="#000000" />
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="Best Deals" />
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewpager_best_deals"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:clipToPadding="false"
+            android:clipChildren="false"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"/>
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:tabBackground="@drawable/tab_indicator_selector"
+            app:tabGravity="center"
+            app:tabIndicatorHeight="0dp"
+            app:tabRippleColor="@null" />
+
+        <include layout="@layout/home_section_header"
+            android:id="@+id/header_top_books"/>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_top_books"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_this_week"
+                android:textAppearance="@style/TextAppearance.Custom.Chip"
+                app:chipBackgroundColor="@color/chip_background_color_selector"
+                app:chipStrokeColor="@color/chip_stroke_color_selector"
+                app:chipStrokeWidth="1dp"
+                android:textColor="@color/chip_text_color_selector"
+                app:chipCornerRadius="8dp"
+                app:chipMinHeight="40dp"
+                app:chipStartPadding="16dp"
+                app:chipEndPadding="16dp"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="This Week"
+                android:checked="true"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_this_month"
+                android:textAppearance="@style/TextAppearance.Custom.Chip"
+                app:chipBackgroundColor="@color/chip_background_color_selector"
+                app:chipStrokeColor="@color/chip_stroke_color_selector"
+                app:chipStrokeWidth="1dp"
+                android:textColor="@color/chip_text_color_selector"
+                app:chipCornerRadius="8dp"
+                app:chipMinHeight="40dp"
+                app:chipStartPadding="16dp"
+                app:chipEndPadding="16dp"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="This Month"/>
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_this_year"
+                android:textAppearance="@style/TextAppearance.Custom.Chip"
+                app:chipBackgroundColor="@color/chip_background_color_selector"
+                app:chipStrokeColor="@color/chip_stroke_color_selector"
+                app:chipStrokeWidth="1dp"
+                android:textColor="@color/chip_text_color_selector"
+                app:chipCornerRadius="8dp"
+                app:chipMinHeight="40dp"
+                app:chipStartPadding="16dp"
+                app:chipEndPadding="16dp"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="This Year"/>
+        </com.google.android.material.chip.ChipGroup>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_top_books"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingEnd="16dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/home_item_book_card" />
+
+        <include layout="@layout/home_section_header"
+            android:id="@+id/header_upcoming_books"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_upcoming_books"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingEnd="16dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/home_item_book_card" />
+
+        <include layout="@layout/home_section_header"
+            android:id="@+id/header_latest_books"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_latest_books"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:paddingEnd="16dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/home_item_book_card" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
