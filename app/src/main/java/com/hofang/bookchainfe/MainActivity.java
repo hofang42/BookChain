@@ -2,6 +2,7 @@ package com.hofang.bookchainfe;
 
 import android.os.Bundle;
 import android.graphics.Color;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -36,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
             // Setup Bottom Navigation with Navigation Component
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
             if (bottomNav != null) {
+                // Hide bottom navigation initially (will be shown when user enters main app)
+                bottomNav.setVisibility(View.GONE);
+                
                 // Force labels to show
                 bottomNav.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
 

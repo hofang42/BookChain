@@ -7,4 +7,12 @@
     <color name="accent_black">#000000</color>
     <color name="accent_light">#F5F5F5</color>
     <color name="gray_border">#DEDEDE</color>
+    
+    <!-- Welcome Screen Colors -->
+    <color name="welcome_background">#F5F5F5</color>
+    <color name="welcome_text">#666666</color>
+    
+    <!-- Text Colors -->
+    <color name="text_secondary">#666666</color>
+    <color name="text_hint">#999999</color>
 </resources>

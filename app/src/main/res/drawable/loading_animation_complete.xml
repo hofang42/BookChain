@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="120dp"
+            android:height="120dp"
+            android:viewportWidth="120"
+            android:viewportHeight="120">
+            
+            <!-- Outer rotating circle -->
+            <group android:name="outer_group">
+                <path
+                    android:name="outer_path"
+                    android:pathData="M60,10 A50,50 0 1,1 59.99,10"
+                    android:strokeColor="#4CAF50"
+                    android:strokeWidth="3"
+                    android:strokeLineCap="round"
+                    android:fillColor="@android:color/transparent" />
+            </group>
+            
+            <!-- Middle counter-rotating circle -->
+            <group android:name="middle_group">
+                <path
+                    android:name="middle_path"
+                    android:pathData="M60,20 A40,40 0 1,1 59.99,20"
+                    android:strokeColor="#2196F3"
+                    android:strokeWidth="2.5"
+                    android:strokeLineCap="round"
+                    android:fillColor="@android:color/transparent" />
+            </group>
+            
+            <!-- Inner fast rotating circle -->
+            <group android:name="inner_group">
+                <path
+                    android:name="inner_path"
+                    android:pathData="M60,30 A30,30 0 1,1 59.99,30"
+                    android:strokeColor="#FF9800"
+                    android:strokeWidth="2"
+                    android:strokeLineCap="round"
+                    android:fillColor="@android:color/transparent" />
+            </group>
+            
+            <!-- Center pulsing dot -->
+            <group android:name="center_group">
+                <path
+                    android:name="center_dot"
+                    android:pathData="M52,60 A8,8 0 1,1 68,60 A8,8 0 1,1 52,60"
+                    android:fillColor="#E91E63" />
+            </group>
+        </vector>
+    </aapt:attr>
+    
+    <!-- Outer circle rotation -->
+    <target android:name="outer_group">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="rotation"
+                android:duration="2000"
+                android:valueFrom="0"
+                android:valueTo="360"
+                android:repeatCount="infinite"
+                android:interpolator="@android:anim/linear_interpolator" />
+        </aapt:attr>
+    </target>
+    
+    <!-- Middle circle counter-rotation -->
+    <target android:name="middle_group">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="rotation"
+                android:duration="1800"
+                android:valueFrom="360"
+                android:valueTo="0"
+                android:repeatCount="infinite"
+                android:interpolator="@android:anim/linear_interpolator" />
+        </aapt:attr>
+    </target>
+    
+    <!-- Inner circle fast rotation -->
+    <target android:name="inner_group">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="rotation"
+                android:duration="1500"
+                android:valueFrom="0"
+                android:valueTo="360"
+                android:repeatCount="infinite"
+                android:interpolator="@android:anim/linear_interpolator" />
+        </aapt:attr>
+    </target>
+    
+    <!-- Center dot scale pulse -->
+    <target android:name="center_group">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:duration="800"
+                    android:valueFrom="1.0"
+                    android:valueTo="1.5"
+                    android:repeatCount="infinite"
+                    android:repeatMode="reverse"
+                    android:interpolator="@android:anim/accelerate_decelerate_interpolator" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:duration="800"
+                    android:valueFrom="1.0"
+                    android:valueTo="1.5"
+                    android:repeatCount="infinite"
+                    android:repeatMode="reverse"
+                    android:interpolator="@android:anim/accelerate_decelerate_interpolator" />
+            </set>
+        </aapt:attr>
+    </target>
+    
+    
+</animated-vector>
