@@ -3,7 +3,91 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/nav_home">
+    app:startDestination="@id/splashFragment">
+
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.hofang.bookchainfe.ui.splash.SplashFragment"
+        android:label="Splash"
+        tools:layout="@layout/fragment_splash">
+        <action
+            android:id="@+id/action_splash_to_welcome"
+            app:destination="@id/welcomeFragment"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="com.hofang.bookchainfe.ui.welcome.WelcomeFragment"
+        android:label="Welcome"
+        tools:layout="@layout/fragment_welcome">
+        <action
+            android:id="@+id/action_welcome_to_signin"
+            app:destination="@id/signInFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_welcome_to_register"
+            app:destination="@id/registerFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_welcome_to_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@id/welcomeFragment"
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/slide_up_fade_in"
+            app:exitAnim="@anim/slide_down_fade_out" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/signInFragment"
+        android:name="com.hofang.bookchainfe.ui.signin.SignInFragment"
+        android:label="Sign In"
+        tools:layout="@layout/fragment_sign_in">
+        <action
+            android:id="@+id/action_signin_to_register"
+            app:destination="@id/registerFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_signin_to_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@id/welcomeFragment"
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/slide_up_fade_in"
+            app:exitAnim="@anim/slide_down_fade_out" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.hofang.bookchainfe.ui.register.RegisterFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register">
+        <action
+            android:id="@+id/action_register_to_signin"
+            app:destination="@id/signInFragment"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left" />
+        <action
+            android:id="@+id/action_register_to_home"
+            app:destination="@id/nav_home"
+            app:popUpTo="@id/welcomeFragment"
+            app:popUpToInclusive="true"
+            app:enterAnim="@anim/slide_up_fade_in"
+            app:exitAnim="@anim/slide_down_fade_out" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_home"
@@ -12,10 +96,16 @@
         tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_home_to_address"
-            app:destination="@id/addressListFragment" />
+            app:destination="@id/addressListFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_home_to_payment_success"
-            app:destination="@id/paymentSuccessFragment" />
+            app:destination="@id/paymentSuccessFragment"
+            app:enterAnim="@anim/slide_up_fade_in"
+            app:exitAnim="@anim/slide_down_fade_out" />
     </fragment>
 
     <fragment
@@ -31,7 +121,11 @@
         tools:layout="@layout/fragment_cart">
         <action
             android:id="@+id/action_cart_to_checkout"
-            app:destination="@id/checkoutFragment" />
+            app:destination="@id/checkoutFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -53,10 +147,16 @@
         tools:layout="@layout/fragment_checkout">
         <action
             android:id="@+id/action_checkout_to_address"
-            app:destination="@id/addressListFragment" />
+            app:destination="@id/addressListFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_checkout_to_payment_success"
-            app:destination="@id/paymentSuccessFragment" />
+            app:destination="@id/paymentSuccessFragment"
+            app:enterAnim="@anim/slide_up_fade_in"
+            app:exitAnim="@anim/slide_down_fade_out" />
     </fragment>
 
     <fragment
