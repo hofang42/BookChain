@@ -17,6 +17,16 @@ import androidx.navigation.Navigation;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.hofang.bookchainfe.R;
+import com.hofang.bookchainfe.model.ApiResponse;
+import com.hofang.bookchainfe.model.AuthResponse;
+import com.hofang.bookchainfe.model.LoginRequest;
+import com.hofang.bookchainfe.network.ApiConfig;
+import com.hofang.bookchainfe.network.AuthApiService;
+import com.hofang.bookchainfe.utils.TokenManager;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SignInFragment extends Fragment {
 
@@ -26,6 +36,9 @@ public class SignInFragment extends Fragment {
     private TextView tvForgotPassword;
     private TextView tvRegister;
     private ImageButton btnBack;
+    
+    private AuthApiService authApiService;
+    private TokenManager tokenManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -36,6 +49,10 @@ public class SignInFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Initialize API service and token manager
+        authApiService = ApiConfig.getAuthApiService();
+        tokenManager = new TokenManager(requireContext());
 
         // Initialize views
         etUsername = view.findViewById(R.id.et_username);
@@ -62,7 +79,7 @@ public class SignInFragment extends Fragment {
 
         tvForgotPassword.setOnClickListener(v -> {
             // TODO: Navigate to forgot password screen
-            Toast.makeText(getContext(), "Forgot password functionality coming soon", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Tính năng quên mật khẩu sẽ có sớm", Toast.LENGTH_SHORT).show();
         });
 
         tvRegister.setOnClickListener(v -> {
@@ -74,19 +91,19 @@ public class SignInFragment extends Fragment {
 
     private boolean validateInput(String username, String password) {
         if (username.isEmpty()) {
-            etUsername.setError("Username/email is required");
+            etUsername.setError("Vui lòng nhập tên đăng nhập hoặc email");
             etUsername.requestFocus();
             return false;
         }
 
         if (password.isEmpty()) {
-            etPassword.setError("Password is required");
+            etPassword.setError("Vui lòng nhập mật khẩu");
             etPassword.requestFocus();
             return false;
         }
 
         if (password.length() < 6) {
-            etPassword.setError("Password must be at least 6 characters");
+            etPassword.setError("Mật khẩu phải có ít nhất 6 ký tự");
             etPassword.requestFocus();
             return false;
         }
@@ -95,33 +112,70 @@ public class SignInFragment extends Fragment {
     }
 
     private void performSignIn(String username, String password) {
-        // TODO: Implement actual sign in logic with API
-        // For now, just simulate successful login
-        
         // Show loading state
         btnSignIn.setEnabled(false);
-        btnSignIn.setText("Signing In...");
+        btnSignIn.setText("Đang đăng nhập...");
 
-        // Simulate API call delay
-        btnSignIn.postDelayed(() -> {
-            // Reset button state
-            btnSignIn.setEnabled(true);
-            btnSignIn.setText("Sign In");
+        // Create login request
+        LoginRequest request = new LoginRequest(username, password);
 
-            // Show success message
-            Toast.makeText(getContext(), "Sign in successful!", Toast.LENGTH_SHORT).show();
+        // Make API call
+        Call<ApiResponse<AuthResponse>> call = authApiService.login(request);
+        call.enqueue(new Callback<ApiResponse<AuthResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<AuthResponse>> call, Response<ApiResponse<AuthResponse>> response) {
+                // Reset button state
+                btnSignIn.setEnabled(true);
+                btnSignIn.setText("Đăng nhập");
 
-            // Show bottom navigation when entering main app
-            if (getActivity() != null) {
-                View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
-                if (bottomNav != null) {
-                    bottomNav.setVisibility(View.VISIBLE);
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<AuthResponse> apiResponse = response.body();
+                    
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        AuthResponse authResponse = apiResponse.getData();
+                        
+                        // Save user session
+                        tokenManager.saveUserSession(
+                            authResponse.getToken(),
+                            authResponse.getUser().getId(),
+                            authResponse.getUser().getUsername(),
+                            authResponse.getUser().getEmail(),
+                            authResponse.getUser().getFullName()
+                        );
+
+                        Toast.makeText(getContext(), "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+
+                        // Show bottom navigation when entering main app
+                        if (getActivity() != null) {
+                            View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
+                            if (bottomNav != null) {
+                                bottomNav.setVisibility(View.VISIBLE);
+                            }
+                        }
+
+                        // Navigate to home
+                        NavController navController = Navigation.findNavController(getView());
+                        navController.navigate(R.id.action_signin_to_home);
+                    } else {
+                        // API returned error
+                        String errorMessage = apiResponse.getError() != null ? apiResponse.getError() : "Đăng nhập thất bại";
+                        Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    // HTTP error
+                    Toast.makeText(getContext(), "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.", Toast.LENGTH_LONG).show();
                 }
             }
 
-            // Navigate to home
-            NavController navController = Navigation.findNavController(getView());
-            navController.navigate(R.id.action_signin_to_home);
-        }, 1500);
+            @Override
+            public void onFailure(Call<ApiResponse<AuthResponse>> call, Throwable t) {
+                // Reset button state
+                btnSignIn.setEnabled(true);
+                btnSignIn.setText("Đăng nhập");
+                
+                // Network error
+                Toast.makeText(getContext(), "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }

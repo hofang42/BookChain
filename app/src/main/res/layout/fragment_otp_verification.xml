@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp">
+
+        <!-- Back Button -->
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="Back"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="Email Verification"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_back" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:id="@+id/tv_subtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="We've sent a 6-digit verification code to"
+            android:textSize="16sp"
+            android:textColor="@color/gray_600"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_title" />
+
+        <!-- Email Display -->
+        <TextView
+            android:id="@+id/tv_email"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="user@example.com"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_subtitle" />
+
+        <!-- OTP Input Container -->
+        <LinearLayout
+            android:id="@+id/ll_otp_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="48dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_email">
+
+            <EditText
+                android:id="@+id/et_otp_1"
+                android:layout_width="50dp"
+                android:layout_height="60dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/otp_input_background"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:importantForAutofill="no" />
+
+            <EditText
+                android:id="@+id/et_otp_2"
+                android:layout_width="50dp"
+                android:layout_height="60dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/otp_input_background"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:importantForAutofill="no" />
+
+            <EditText
+                android:id="@+id/et_otp_3"
+                android:layout_width="50dp"
+                android:layout_height="60dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/otp_input_background"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:importantForAutofill="no" />
+
+            <EditText
+                android:id="@+id/et_otp_4"
+                android:layout_width="50dp"
+                android:layout_height="60dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/otp_input_background"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:importantForAutofill="no" />
+
+            <EditText
+                android:id="@+id/et_otp_5"
+                android:layout_width="50dp"
+                android:layout_height="60dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/otp_input_background"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:importantForAutofill="no" />
+
+            <EditText
+                android:id="@+id/et_otp_6"
+                android:layout_width="50dp"
+                android:layout_height="60dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/otp_input_background"
+                android:gravity="center"
+                android:inputType="number"
+                android:maxLength="1"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:importantForAutofill="no" />
+
+        </LinearLayout>
+
+        <!-- Timer Text -->
+        <TextView
+            android:id="@+id/tv_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Resend code in 60s"
+            android:textSize="14sp"
+            android:textColor="@color/gray_500"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ll_otp_container" />
+
+        <!-- Resend Button -->
+        <TextView
+            android:id="@+id/tv_resend"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Resend Code"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary"
+            android:background="?attr/selectableItemBackground"
+            android:padding="8dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_timer" />
+
+        <!-- Verify Button -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_verify"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="48dp"
+            android:background="@drawable/button_primary"
+            android:text="Verify Email"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:enabled="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_resend" />
+
+        <!-- Info Text -->
+        <TextView
+            android:id="@+id/tv_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Didn't receive the code? Check your spam folder or try again."
+            android:textSize="14sp"
+            android:textColor="@color/gray_500"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_verify" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>
