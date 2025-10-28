@@ -4,10 +4,14 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
+import androidx.navigation.Navigation;
 
 import com.hofang.bookchainfe.R;
 import android.os.Handler;
@@ -20,6 +24,7 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.hofang.bookchainfe.network.ApiConfig;
+import com.hofang.bookchainfe.utils.TokenManager;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -30,6 +35,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AccountFragment extends Fragment {
+
+    private TokenManager tokenManager;
 
     public AccountFragment() {
         // Required empty public constructor
@@ -51,11 +58,9 @@ public class AccountFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Window insets for bottom navigation are now handled by AccountActivity
-        // No need to handle here
+        // Initialize token manager
+        tokenManager = new TokenManager(requireContext());
 
-        // Initialize views and set up click listeners here
-        // Example: view.findViewById(R.id.btn_edit).setOnClickListener(v -> { ... });
         // Bind UI
         final TextView tvName = view.findViewById(R.id.value_name);
         final TextView tvEmail = view.findViewById(R.id.value_email);
@@ -63,8 +68,53 @@ public class AccountFragment extends Fragment {
         final TextView tvAddress = view.findViewById(R.id.value_address);
         final ImageView avatar = view.findViewById(R.id.avatar);
 
-        // Fetch profile from backend and populate UI
-        fetchProfileAndPopulate(tvName, tvEmail, tvPassword, tvAddress, avatar);
+        // Display user info from stored session
+        displayUserInfo(tvName, tvEmail, tvPassword, tvAddress);
+
+        // Add logout button functionality
+        Button btnLogout = view.findViewById(R.id.btn_logout);
+        if (btnLogout != null) {
+            btnLogout.setOnClickListener(v -> performLogout());
+        }
+
+        // Fetch profile from backend and populate UI (if needed for additional data)
+        // fetchProfileAndPopulate(tvName, tvEmail, tvPassword, tvAddress, avatar);
+    }
+
+    private void displayUserInfo(TextView tvName, TextView tvEmail, TextView tvPassword, TextView tvAddress) {
+        if (tokenManager.isLoggedIn()) {
+            tvName.setText(tokenManager.getFullName() != null ? tokenManager.getFullName() : tokenManager.getUsername());
+            tvEmail.setText(tokenManager.getEmail());
+            tvPassword.setText("********"); // Always mask password
+            tvAddress.setText("-"); // We don't store address in token
+        } else {
+            tvName.setText("Guest User");
+            tvEmail.setText("-");
+            tvPassword.setText("-");
+            tvAddress.setText("-");
+        }
+    }
+
+    private void performLogout() {
+        // Clear user session
+        tokenManager.clearSession();
+        
+        // Hide bottom navigation
+        if (getActivity() != null) {
+            View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
+            if (bottomNav != null) {
+                bottomNav.setVisibility(View.GONE);
+            }
+        }
+        
+        Toast.makeText(getContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
+        
+        // Navigate to welcome screen and clear back stack
+        NavController navController = Navigation.findNavController(requireView());
+        NavOptions navOptions = new NavOptions.Builder()
+                .setPopUpTo(R.id.nav_graph, true)
+                .build();
+        navController.navigate(R.id.welcomeFragment, null, navOptions);
     }
 
     // Basic HTTP GET using HttpURLConnection on background thread

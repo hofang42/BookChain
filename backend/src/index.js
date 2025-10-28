@@ -3,11 +3,12 @@ const dotenv = require("dotenv");
 const usersRoutes = require("./routes/users");
 const booksRoutes = require("./routes/books");
 const branchesRoutes = require("./routes/branches");
+const authRoutes = require("./routes/auth");
 const cors = require("cors");
 const { errorHandler } = require("./middleware/errorHandler");
 const connectDB = require("./services/db");
 
-dotenv.config();
+dotenv.config({ path: './.env' });
 
 const app = express();
 app.use(express.json());
@@ -16,6 +17,7 @@ app.use(cors());
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
+app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/books", booksRoutes);
 app.use("/api/branches", branchesRoutes);

@@ -81,12 +81,29 @@
             app:popEnterAnim="@anim/slide_in_right"
             app:popExitAnim="@anim/slide_out_left" />
         <action
-            android:id="@+id/action_register_to_home"
+            android:id="@+id/action_register_to_otp"
+            app:destination="@id/otpVerificationFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/otpVerificationFragment"
+        android:name="com.hofang.bookchainfe.ui.otp.OTPVerificationFragment"
+        android:label="OTP Verification"
+        tools:layout="@layout/fragment_otp_verification">
+        <action
+            android:id="@+id/action_otp_to_home"
             app:destination="@id/nav_home"
             app:popUpTo="@id/welcomeFragment"
             app:popUpToInclusive="true"
             app:enterAnim="@anim/slide_up_fade_in"
             app:exitAnim="@anim/slide_down_fade_out" />
+        <argument
+            android:name="email"
+            app:argType="string" />
     </fragment>
 
     <fragment
