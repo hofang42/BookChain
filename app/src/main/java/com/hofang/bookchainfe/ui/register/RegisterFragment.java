@@ -1,6 +1,7 @@
 package com.hofang.bookchainfe.ui.register;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,7 @@ import com.hofang.bookchainfe.model.RegisterRequest;
 import com.hofang.bookchainfe.model.SendOTPRequest;
 import com.hofang.bookchainfe.network.ApiConfig;
 import com.hofang.bookchainfe.network.AuthApiService;
+import com.hofang.bookchainfe.utils.ErrorMessageParser;
 import com.hofang.bookchainfe.utils.TokenManager;
 
 import retrofit2.Call;
@@ -241,8 +243,10 @@ public class RegisterFragment extends Fragment {
                         Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    // HTTP error
-                    Toast.makeText(getContext(), "Đăng ký thất bại. Vui lòng thử lại.", Toast.LENGTH_LONG).show();
+                    // HTTP error - parse error message from response body
+                    String errorMessage = ErrorMessageParser.parseErrorMessage(response, 
+                        "Đăng ký thất bại. Vui lòng thử lại.");
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                 }
             }
 

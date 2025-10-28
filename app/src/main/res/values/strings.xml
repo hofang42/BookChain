@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">BookChainFE</string>
+    
+    <!-- Firebase Google Sign-In -->
+    <!-- TODO: Replace with your actual Web Client ID from Firebase Console -->
+    <string name="default_web_client_id">164745417115-ohta6p2r4g5nj5reipujr8bugsr09vtd.apps.googleusercontent.com</string>
+    
+    <!-- Google Sign-In UI -->
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="google_sign_in_failed">Google sign in failed</string>
+    <string name="google_sign_in_cancelled">Sign in cancelled</string>
+    
+    <!-- Common UI -->
+    <string name="back">Back</string>
 </resources>

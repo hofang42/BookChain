@@ -1,6 +1,8 @@
 package com.hofang.bookchainfe.ui.signin;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +10,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
@@ -16,34 +20,59 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseUser;
 import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.model.ApiResponse;
 import com.hofang.bookchainfe.model.AuthResponse;
+import com.hofang.bookchainfe.model.GoogleSignInRequest;
 import com.hofang.bookchainfe.model.LoginRequest;
 import com.hofang.bookchainfe.network.ApiConfig;
 import com.hofang.bookchainfe.network.AuthApiService;
+import com.hofang.bookchainfe.utils.ErrorMessageParser;
+import com.hofang.bookchainfe.utils.GoogleSignInHelper;
 import com.hofang.bookchainfe.utils.TokenManager;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class SignInFragment extends Fragment {
+public class SignInFragment extends Fragment implements GoogleSignInHelper.GoogleSignInListener {
+    private static final String TAG = "SignInFragment";
 
     private TextInputEditText etUsername;
     private TextInputEditText etPassword;
     private AppCompatButton btnSignIn;
+    private AppCompatButton btnGoogleSignIn;
     private TextView tvForgotPassword;
     private TextView tvRegister;
     private ImageButton btnBack;
     
     private AuthApiService authApiService;
     private TokenManager tokenManager;
+    private GoogleSignInHelper googleSignInHelper;
+    
+    // Activity result launcher for Google Sign-In
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_sign_in, container, false);
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        
+        // Initialize Google Sign-In launcher
+        googleSignInLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (googleSignInHelper != null) {
+                    googleSignInHelper.handleSignInResult(result.getData());
+                }
+            }
+        );
     }
 
     @Override
@@ -53,11 +82,16 @@ public class SignInFragment extends Fragment {
         // Initialize API service and token manager
         authApiService = ApiConfig.getAuthApiService();
         tokenManager = new TokenManager(requireContext());
+        
+        // Initialize Google Sign-In helper
+        googleSignInHelper = new GoogleSignInHelper(requireContext());
+        googleSignInHelper.setListener(this);
 
         // Initialize views
         etUsername = view.findViewById(R.id.et_username);
         etPassword = view.findViewById(R.id.et_password);
         btnSignIn = view.findViewById(R.id.btn_sign_in);
+        btnGoogleSignIn = view.findViewById(R.id.btn_google_sign_in);
         tvForgotPassword = view.findViewById(R.id.tv_forgot_password);
         tvRegister = view.findViewById(R.id.tv_register);
         btnBack = view.findViewById(R.id.btn_back);
@@ -78,14 +112,21 @@ public class SignInFragment extends Fragment {
         });
 
         tvForgotPassword.setOnClickListener(v -> {
-            // TODO: Navigate to forgot password screen
-            Toast.makeText(getContext(), "Tính năng quên mật khẩu sẽ có sớm", Toast.LENGTH_SHORT).show();
+            // Navigate to forgot password screen
+            NavController navController = Navigation.findNavController(v);
+            navController.navigate(R.id.action_signin_to_forgotPassword);
         });
 
         tvRegister.setOnClickListener(v -> {
             // Navigate to Register screen
             NavController navController = Navigation.findNavController(v);
             navController.navigate(R.id.action_signin_to_register);
+        });
+        
+        // Google Sign-In button click listener
+        btnGoogleSignIn.setOnClickListener(v -> {
+            Log.d(TAG, "Google Sign-In button clicked");
+            googleSignInHelper.signIn(googleSignInLauncher);
         });
     }
 
@@ -162,8 +203,10 @@ public class SignInFragment extends Fragment {
                         Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    // HTTP error
-                    Toast.makeText(getContext(), "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.", Toast.LENGTH_LONG).show();
+                    // HTTP error - parse error message from response body
+                    String errorMessage = ErrorMessageParser.parseErrorMessage(response, 
+                        "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.");
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -177,5 +220,79 @@ public class SignInFragment extends Fragment {
                 Toast.makeText(getContext(), "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.", Toast.LENGTH_LONG).show();
             }
         });
+    }
+    
+    // Google Sign-In callback methods
+    @Override
+    public void onSignInSuccess(FirebaseUser user, String idToken) {
+        Log.d(TAG, "Google Sign-In successful: " + user.getEmail());
+        
+        // Send Firebase ID token to backend for verification and get JWT token
+        GoogleSignInRequest request = new GoogleSignInRequest(
+            idToken,
+            user.getEmail(),
+            user.getDisplayName(),
+            user.getUid()
+        );
+        
+        Call<ApiResponse<AuthResponse>> call = authApiService.googleSignIn(request);
+        call.enqueue(new Callback<ApiResponse<AuthResponse>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<AuthResponse>> call, Response<ApiResponse<AuthResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<AuthResponse> apiResponse = response.body();
+                    
+                    if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                        AuthResponse authResponse = apiResponse.getData();
+                        
+                        // Save user session with backend JWT token
+                        tokenManager.saveUserSession(
+                            authResponse.getToken(),
+                            authResponse.getUser().getId(),
+                            authResponse.getUser().getUsername(),
+                            authResponse.getUser().getEmail(),
+                            authResponse.getUser().getFullName()
+                        );
+                        
+                        Toast.makeText(getContext(), "Đăng nhập Google thành công!", Toast.LENGTH_SHORT).show();
+                        
+                        // Show bottom navigation when entering main app
+                        if (getActivity() != null) {
+                            View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
+                            if (bottomNav != null) {
+                                bottomNav.setVisibility(View.VISIBLE);
+                            }
+                        }
+                        
+                        // Navigate to home
+                        NavController navController = Navigation.findNavController(getView());
+                        navController.navigate(R.id.action_signin_to_home);
+                    } else {
+                        String errorMessage = apiResponse.getError() != null ? apiResponse.getError() : "Đăng nhập Google thất bại";
+                        Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Toast.makeText(getContext(), "Đăng nhập Google thất bại. Vui lòng thử lại.", Toast.LENGTH_LONG).show();
+                }
+            }
+            
+            @Override
+            public void onFailure(Call<ApiResponse<AuthResponse>> call, Throwable t) {
+                Log.e(TAG, "Google Sign-In API call failed", t);
+                Toast.makeText(getContext(), "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+    
+    @Override
+    public void onSignInFailure(String error) {
+        Log.e(TAG, "Google Sign-In failed: " + error);
+        Toast.makeText(getContext(), "Đăng nhập Google thất bại: " + error, Toast.LENGTH_LONG).show();
+    }
+    
+    @Override
+    public void onSignInCancelled() {
+        Log.d(TAG, "Google Sign-In cancelled by user");
+        Toast.makeText(getContext(), "Đăng nhập Google đã bị hủy", Toast.LENGTH_SHORT).show();
     }
 }

@@ -1,19 +1,14 @@
 package com.hofang.bookchainfe.model;
 
-public class VerifyOTPRequest {
+public class ResetPasswordRequest {
     private String email;
     private String otp;
-    private String type;
+    private String password;
 
-    public VerifyOTPRequest(String email, String otp) {
+    public ResetPasswordRequest(String email, String otp, String password) {
         this.email = email;
         this.otp = otp;
-    }
-
-    public VerifyOTPRequest(String email, String otp, String type) {
-        this.email = email;
-        this.otp = otp;
-        this.type = type;
+        this.password = password;
     }
 
     public String getEmail() {
@@ -32,11 +27,11 @@ public class VerifyOTPRequest {
         this.otp = otp;
     }
 
-    public String getType() {
-        return type;
+    public String getPassword() {
+        return password;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

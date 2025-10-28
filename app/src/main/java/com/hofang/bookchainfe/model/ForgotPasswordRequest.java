@@ -2,11 +2,11 @@ package com.hofang.bookchainfe.model;
 
 import com.google.gson.annotations.SerializedName;
 
-public class SendOTPRequest {
+public class ForgotPasswordRequest {
     @SerializedName("email")
     private String email;
 
-    public SendOTPRequest(String email) {
+    public ForgotPasswordRequest(String email) {
         this.email = email;
     }
 
