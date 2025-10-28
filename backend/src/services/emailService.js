@@ -119,6 +119,25 @@ const sendPasswordResetEmail = async (email, resetToken, fullName) => {
   return await sendEmail(email, subject, html);
 };
 
+const sendPasswordResetOTP = async (email, otp, fullName) => {
+  const subject = "BookChain - Password Reset Code";
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #333;">Password Reset Code</h2>
+      <p>Hi ${fullName || 'there'},</p>
+      <p>You requested a password reset for your BookChain account. Please use the following code to reset your password:</p>
+      <div style="background-color: #f4f4f4; padding: 20px; text-align: center; margin: 20px 0;">
+        <h1 style="color: #dc3545; font-size: 32px; margin: 0;">${otp}</h1>
+      </div>
+      <p>This code will expire in 10 minutes.</p>
+      <p>If you didn't request this password reset, please ignore this email.</p>
+      <p>Best regards,<br>BookChain Team</p>
+    </div>
+  `;
+  
+  return await sendEmail(email, subject, html);
+};
+
 // Initialize on module load
 initializeEmailService();
 
@@ -127,6 +146,7 @@ module.exports = {
   sendEmailVerificationOTP,
   sendWelcomeEmail,
   sendPasswordResetEmail,
+  sendPasswordResetOTP,
   initializeEmailService, 
   isInitialized: () => isInitialized 
 };

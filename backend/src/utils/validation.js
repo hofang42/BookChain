@@ -110,9 +110,15 @@ const validateForgotPassword = [
  * Validation rules for reset password
  */
 const validateResetPassword = [
-  body("token")
+  body("email")
+    .isEmail()
+    .withMessage("Email không hợp lệ"),
+    
+  body("otp")
     .notEmpty()
-    .withMessage("Mã xác thực không được để trống"),
+    .withMessage("Mã OTP không được để trống")
+    .isLength({ min: 6, max: 6 })
+    .withMessage("Mã OTP phải có 6 số"),
     
   body("password")
     .isLength({ min: 8 })

@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const User = require("../models/User");
-const { sendEmailVerificationOTP, sendWelcomeEmail, sendPasswordResetEmail } = require("../services/emailService");
+const { sendEmailVerificationOTP, sendWelcomeEmail, sendPasswordResetEmail, sendPasswordResetOTP } = require("../services/emailService");
 const otpService = require("../services/otpService");
 
 /**
@@ -390,38 +390,160 @@ const forgotPassword = async (req, res, next) => {
 };
 
 /**
+ * Send password reset OTP
+ * POST /api/auth/send-password-reset-otp
+ */
+const sendPasswordResetOTPController = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: "Email is required"
+      });
+    }
+
+    // Find user (không cần check status active vì user có thể chưa verify email nhưng vẫn cần reset password)
+    const user = await User.findOne({ 
+      email
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "Email not found in our system"
+      });
+    }
+
+    // Generate OTP
+    const otp = otpService.generatePasswordResetOTP(email);
+
+    try {
+      // Send OTP email with timeout
+      const emailPromise = sendPasswordResetOTP(user.email, otp, user.fullName);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email sending timeout')), 30000)
+      );
+      
+      const emailResult = await Promise.race([emailPromise, timeoutPromise]);
+      
+      // Check if email sending failed
+      if (emailResult && !emailResult.success) {
+        throw new Error(emailResult.message || 'Failed to send password reset email');
+      }
+
+      res.json({
+        success: true,
+        message: "Password reset code sent to your email"
+      });
+    } catch (emailError) {
+      console.error(`Failed to send password reset OTP to ${user.email}:`, emailError.message);
+      
+      // Clear OTP if email fails
+      otpService.clearOTP(email);
+
+      return res.status(500).json({
+        success: false,
+        error: "Failed to send password reset email. Please try again."
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Verify password reset OTP
+ * POST /api/auth/verify-password-reset-otp
+ */
+const verifyPasswordResetOTP = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        error: "Email and OTP are required"
+      });
+    }
+
+    // Find user (không cần check status active vì user có thể chưa verify email nhưng vẫn cần reset password)
+    const user = await User.findOne({ 
+      email
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found"
+      });
+    }
+
+    // Verify OTP
+    const isValidOTP = otpService.verifyPasswordResetOTP(email, otp);
+
+    if (!isValidOTP) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid or expired OTP"
+      });
+    }
+
+    // OTP verified successfully - user can now reset password
+    res.json({
+      success: true,
+      message: "OTP verified successfully. You can now reset your password.",
+      data: {
+        email: email,
+        verified: true
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Reset password with token
  * POST /api/auth/reset-password
  */
 const resetPassword = async (req, res, next) => {
   try {
-    const { token, password } = req.body;
+    const { email, otp, password } = req.body;
 
-    // Hash the token to compare with stored hash
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(token)
-      .digest("hex");
-
-    // Find user with valid reset token
-    const user = await User.findOne({
-      passwordResetToken: hashedToken,
-      passwordResetExpires: { $gt: Date.now() },
-      status: "active"
-    });
-
-    if (!user) {
+    if (!email || !otp || !password) {
       return res.status(400).json({
         success: false,
-        error: "Invalid or expired reset token"
+        error: "Email, OTP and password are required"
+      });
+    }
+
+    // Verify OTP one more time for security
+    const isValidOTP = otpService.verifyPasswordResetOTP(email, otp);
+    if (!isValidOTP) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid or expired OTP"
+      });
+    }
+
+    // Find user
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found"
       });
     }
 
     // Update password
     user.passwordHash = password; // Will be hashed by pre-save middleware
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
     await user.save();
+
+    // Clear the OTP after successful password reset
+    otpService.clearOTP(email);
 
     // Generate new token
     const authToken = generateToken(user._id);
@@ -538,6 +660,74 @@ const logout = async (req, res, next) => {
   }
 };
 
+/**
+ * Google Sign-In with Firebase ID token
+ * POST /api/auth/google
+ */
+const googleSignIn = async (req, res, next) => {
+  try {
+    const { idToken, email, name, uid } = req.body;
+
+    if (!idToken || !email || !uid) {
+      return res.status(400).json({
+        success: false,
+        error: "Firebase ID token, email, and UID are required"
+      });
+    }
+
+    // TODO: Verify Firebase ID token with Firebase Admin SDK
+    // For now, we'll trust the client-side verification
+    
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user from Google account
+      user = new User({
+        username: email.split('@')[0] + '_google', // Generate username from email
+        email: email,
+        fullName: name || 'Google User',
+        passwordHash: 'google_oauth', // Placeholder password for OAuth users
+        role: 'customer',
+        status: 'active', // Google users are pre-verified
+        lastLogin: new Date()
+      });
+
+      await user.save();
+    } else {
+      // Update last login for existing user
+      user.lastLogin = new Date();
+      await user.save();
+    }
+
+    // Generate JWT token
+    const token = generateToken(user._id);
+
+    // Return user data
+    const userData = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      fullName: user.fullName,
+      phone: user.phone,
+      role: user.role,
+      status: user.status,
+      lastLogin: user.lastLogin
+    };
+
+    res.json({
+      success: true,
+      message: "Google sign-in successful",
+      data: {
+        user: userData,
+        token
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -545,8 +735,11 @@ module.exports = {
   sendVerificationOTP,
   verifyEmail,
   forgotPassword,
+  sendPasswordResetOTPController,
+  verifyPasswordResetOTP,
   resetPassword,
   changePassword,
   updateProfile,
-  logout
+  logout,
+  googleSignIn
 };

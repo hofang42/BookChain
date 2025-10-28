@@ -9,6 +9,8 @@ const {
   sendVerificationOTP,
   verifyEmail,
   forgotPassword,
+  sendPasswordResetOTPController,
+  verifyPasswordResetOTP,
   resetPassword,
   changePassword,
   updateProfile,
@@ -124,6 +126,20 @@ router.post("/verify-email", verifyEmail);
 router.post("/forgot-password", emailHealthCheck, validateForgotPassword, forgotPassword);
 
 /**
+ * @route   POST /api/auth/send-password-reset-otp
+ * @desc    Send password reset OTP
+ * @access  Public
+ */
+router.post("/send-password-reset-otp", emailHealthCheck, validateForgotPassword, sendPasswordResetOTPController);
+
+/**
+ * @route   POST /api/auth/verify-password-reset-otp
+ * @desc    Verify password reset OTP
+ * @access  Public
+ */
+router.post("/verify-password-reset-otp", verifyPasswordResetOTP);
+
+/**
  * @route   POST /api/auth/reset-password
  * @desc    Reset password with token
  * @access  Public
@@ -150,5 +166,12 @@ router.put("/profile", authenticate, validateUpdateProfile, updateProfile);
  * @access  Private
  */
 router.post("/logout", authenticate, logout);
+
+/**
+ * @route   POST /api/auth/google
+ * @desc    Google Sign-In with Firebase ID token
+ * @access  Public
+ */
+router.post("/google", require("../controllers/authController").googleSignIn);
 
 module.exports = router;

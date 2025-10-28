@@ -22,6 +22,13 @@
     
     <!-- Gray Colors -->
     <color name="gray_300">#D1D5DB</color>
+    <color name="gray_400">#9CA3AF</color>
     <color name="gray_500">#6B7280</color>
     <color name="gray_600">#4B5563</color>
+    
+    <!-- Success Color -->
+    <color name="success">#10B981</color>
+    
+    <!-- Divider Color -->
+    <color name="divider">#E0E0E0</color>
 </resources>

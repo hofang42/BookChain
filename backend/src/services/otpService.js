@@ -115,7 +115,7 @@ class OTPService {
       return false;
     }
     
-    this.otpStorage.delete(email); // Remove after successful verification
+    // Don't delete OTP here - let resetPassword handle it
     return true;
   }
 
