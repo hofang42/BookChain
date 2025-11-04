@@ -2,13 +2,14 @@ const express = require("express");
 const dotenv = require("dotenv");
 const usersRoutes = require("./routes/users");
 const booksRoutes = require("./routes/books");
+const categoryRoutes = require("./routes/categories");
 const branchesRoutes = require("./routes/branches");
 const authRoutes = require("./routes/auth");
 const cors = require("cors");
 const { errorHandler } = require("./middleware/errorHandler");
 const connectDB = require("./services/db");
 
-dotenv.config({ path: './.env' });
+dotenv.config({ path: "./.env" });
 
 const app = express();
 app.use(express.json());
@@ -21,6 +22,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/books", booksRoutes);
 app.use("/api/branches", branchesRoutes);
+app.use("/api/categories", categoryRoutes);
 
 app.use(errorHandler);
 
