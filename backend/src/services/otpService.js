@@ -9,9 +9,14 @@ class OTPService {
     // Format: { email: { otp: "123456", expires: timestamp, type: "email_verification" | "password_reset" } }
     this.otpStorage = new Map();
     
+    // Rate limiting storage
+    // Format: { email: { attempts: number, lastAttempt: timestamp, cooldownUntil: timestamp } }
+    this.rateLimitStorage = new Map();
+    
     // Clean expired OTPs every 5 minutes
     setInterval(() => {
       this.cleanExpiredOTPs();
+      this.cleanExpiredRateLimits();
     }, 5 * 60 * 1000);
   }
 
@@ -24,11 +29,95 @@ class OTPService {
   }
 
   /**
+   * Check rate limiting for OTP generation
+   * @param {string} email - User email
+   * @returns {object} Rate limit result
+   */
+  checkRateLimit(email) {
+    const now = Date.now();
+    const rateLimit = this.rateLimitStorage.get(email);
+    
+    if (!rateLimit) {
+      return { allowed: true };
+    }
+    
+    // Check if still in cooldown
+    if (now < rateLimit.cooldownUntil) {
+      const remainingTime = Math.ceil((rateLimit.cooldownUntil - now) / 1000);
+      return { 
+        allowed: false, 
+        reason: 'cooldown',
+        remainingTime 
+      };
+    }
+    
+    // Reset attempts if cooldown period has passed
+    if (now >= rateLimit.cooldownUntil) {
+      this.rateLimitStorage.delete(email);
+      return { allowed: true };
+    }
+    
+    // Check if too many attempts in time window (30 minutes)
+    const timeWindow = 30 * 60 * 1000; // 30 minutes
+    if (now - rateLimit.lastAttempt > timeWindow) {
+      // Reset attempts if outside time window
+      this.rateLimitStorage.delete(email);
+      return { allowed: true };
+    }
+    
+    if (rateLimit.attempts >= 5) {
+      // Set cooldown for 30 minutes
+      rateLimit.cooldownUntil = now + timeWindow;
+      const remainingTime = Math.ceil(timeWindow / 1000);
+      return { 
+        allowed: false, 
+        reason: 'too_many_attempts',
+        remainingTime 
+      };
+    }
+    
+    return { allowed: true };
+  }
+
+  /**
+   * Update rate limiting after OTP generation
+   * @param {string} email - User email
+   */
+  updateRateLimit(email) {
+    const now = Date.now();
+    const rateLimit = this.rateLimitStorage.get(email);
+    
+    if (!rateLimit) {
+      this.rateLimitStorage.set(email, {
+        attempts: 1,
+        lastAttempt: now,
+        cooldownUntil: now + 60 * 1000 // 60 seconds cooldown between requests
+      });
+    } else {
+      rateLimit.attempts += 1;
+      rateLimit.lastAttempt = now;
+      rateLimit.cooldownUntil = now + 60 * 1000; // 60 seconds cooldown between requests
+    }
+  }
+
+  /**
    * Store OTP for email verification
    * @param {string} email - User email
-   * @returns {string} Generated OTP
+   * @returns {object} Result with OTP or error
    */
   generateEmailVerificationOTP(email) {
+    // Check rate limiting
+    const rateLimitResult = this.checkRateLimit(email);
+    if (!rateLimitResult.allowed) {
+      return {
+        success: false,
+        error: rateLimitResult.reason === 'cooldown' 
+          ? `Please wait ${rateLimitResult.remainingTime} seconds before requesting another code`
+          : `Too many attempts. Please try again in ${Math.ceil(rateLimitResult.remainingTime / 60)} minutes`,
+        remainingTime: rateLimitResult.remainingTime
+      };
+    }
+
     const otp = this.generateOTP();
     const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
     
@@ -38,7 +127,13 @@ class OTPService {
       type: 'email_verification'
     });
     
-    return otp;
+    // Update rate limiting
+    this.updateRateLimit(email);
+    
+    return {
+      success: true,
+      otp
+    };
   }
 
   /**
@@ -142,6 +237,21 @@ class OTPService {
     }
     
     // Silently clean expired OTPs
+  }
+
+  /**
+   * Clean expired rate limits from memory
+   */
+  cleanExpiredRateLimits() {
+    const now = Date.now();
+    const timeWindow = 30 * 60 * 1000; // 30 minutes
+    
+    for (const [email, data] of this.rateLimitStorage.entries()) {
+      // Remove rate limits older than time window and not in cooldown
+      if (now - data.lastAttempt > timeWindow && now >= data.cooldownUntil) {
+        this.rateLimitStorage.delete(email);
+      }
+    }
   }
 
   /**
