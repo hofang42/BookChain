@@ -228,6 +228,9 @@ public class OTPVerificationFragment extends Fragment {
                         String errorMessage = apiResponse.getError() != null ? apiResponse.getError() : "Gửi mã OTP thất bại";
                         Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                     }
+                } else if (response.code() == 429) {
+                    // Rate limiting error
+                    Toast.makeText(getContext(), "Bạn đã gửi quá nhiều yêu cầu. Vui lòng đợi một chút rồi thử lại.", Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(getContext(), "Gửi mã OTP thất bại. Vui lòng thử lại.", Toast.LENGTH_LONG).show();
                 }
