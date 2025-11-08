@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const User = require("../models/User");
-const { sendEmailVerificationOTP, sendWelcomeEmail, sendPasswordResetEmail, sendPasswordResetOTP } = require("../services/emailService");
+const { sendEmailVerificationOTP, sendWelcomeEmail, /* sendPasswordResetEmail, */ sendPasswordResetOTP } = require("../services/emailService");
 const otpService = require("../services/otpService");
 
 /**
@@ -449,9 +449,13 @@ const verifyEmail = async (req, res, next) => {
 };
 
 /**
- * Forgot password - send reset email
+ * DEPRECATED: Forgot password - send reset email (token-based)
  * POST /api/auth/forgot-password
+ * 
+ * Hàm này không còn được sử dụng. Hệ thống hiện tại sử dụng OTP-based reset thay vì token-based.
+ * Giữ lại để tham khảo trong tương lai nếu cần.
  */
+/*
 const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -498,6 +502,7 @@ const forgotPassword = async (req, res, next) => {
     next(error);
   }
 };
+*/
 
 /**
  * Send password reset OTP
@@ -807,6 +812,16 @@ const googleSignIn = async (req, res, next) => {
     } else {
       // Update last login for existing user
       user.lastLogin = new Date();
+      
+      // If user was pending, activate account since Google has verified the email
+      if (user.status === 'pending') {
+        user.status = 'active';
+        // Optionally update fullName if provided and different
+        if (name && name !== 'Google User' && name !== user.fullName) {
+          user.fullName = name;
+        }
+      }
+      
       await user.save();
     }
 
@@ -844,7 +859,7 @@ module.exports = {
   getMe,
   sendVerificationOTP,
   verifyEmail,
-  forgotPassword,
+  // forgotPassword, // DEPRECATED: Không còn sử dụng, đã chuyển sang OTP-based reset
   sendPasswordResetOTPController,
   verifyPasswordResetOTP,
   resetPassword,
