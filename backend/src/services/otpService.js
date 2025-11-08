@@ -65,7 +65,7 @@ class OTPService {
       return { allowed: true };
     }
     
-    if (rateLimit.attempts >= 5) {
+    if (rateLimit.attempts >= 10) {
       // Set cooldown for 30 minutes
       rateLimit.cooldownUntil = now + timeWindow;
       const remainingTime = Math.ceil(timeWindow / 1000);
@@ -91,12 +91,12 @@ class OTPService {
       this.rateLimitStorage.set(email, {
         attempts: 1,
         lastAttempt: now,
-        cooldownUntil: now + 60 * 1000 // 60 seconds cooldown between requests
+        cooldownUntil: now + 5 * 1000 // 5 seconds cooldown between requests
       });
     } else {
       rateLimit.attempts += 1;
       rateLimit.lastAttempt = now;
-      rateLimit.cooldownUntil = now + 60 * 1000; // 60 seconds cooldown between requests
+      rateLimit.cooldownUntil = now + 5 * 1000; // 5 seconds cooldown between requests
     }
   }
 

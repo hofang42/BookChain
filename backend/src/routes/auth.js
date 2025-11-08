@@ -8,7 +8,7 @@ const {
   getMe,
   sendVerificationOTP,
   verifyEmail,
-  forgotPassword,
+  // forgotPassword, // DEPRECATED: Không còn sử dụng, đã chuyển sang OTP-based reset
   sendPasswordResetOTPController,
   verifyPasswordResetOTP,
   resetPassword,
@@ -119,11 +119,12 @@ router.post("/send-verification-otp", emailHealthCheck, sendVerificationOTP);
 router.post("/verify-email", verifyEmail);
 
 /**
+ * DEPRECATED: Route này không còn được sử dụng. Hệ thống hiện tại sử dụng OTP-based reset.
  * @route   POST /api/auth/forgot-password
- * @desc    Send password reset email
+ * @desc    Send password reset email (token-based)
  * @access  Public
  */
-router.post("/forgot-password", emailHealthCheck, validateForgotPassword, forgotPassword);
+// router.post("/forgot-password", emailHealthCheck, validateForgotPassword, forgotPassword);
 
 /**
  * @route   POST /api/auth/send-password-reset-otp

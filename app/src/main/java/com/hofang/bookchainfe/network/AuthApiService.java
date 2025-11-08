@@ -2,7 +2,6 @@ package com.hofang.bookchainfe.network;
 
 import com.hofang.bookchainfe.model.ApiResponse;
 import com.hofang.bookchainfe.model.AuthResponse;
-import com.hofang.bookchainfe.model.ForgotPasswordRequest;
 import com.hofang.bookchainfe.model.GoogleSignInRequest;
 import com.hofang.bookchainfe.model.LoginRequest;
 import com.hofang.bookchainfe.model.PasswordResetOTPResponse;
@@ -31,9 +30,6 @@ public interface AuthApiService {
     
     @POST("api/auth/google")
     Call<ApiResponse<AuthResponse>> googleSignIn(@Body GoogleSignInRequest request);
-    
-    @POST("api/auth/forgot-password")
-    Call<ApiResponse<String>> forgotPassword(@Body ForgotPasswordRequest request);
     
     @POST("api/auth/send-password-reset-otp")
     Call<ApiResponse<String>> sendPasswordResetOTP(@Body SendOTPRequest request);

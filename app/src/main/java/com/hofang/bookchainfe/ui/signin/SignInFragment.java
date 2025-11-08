@@ -223,9 +223,17 @@ public class SignInFragment extends Fragment implements GoogleSignInHelper.Googl
                                 authResponse.getUser().getFullName()
                             );
 
-                            Toast.makeText(getContext(), "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                            // Navigate immediately with strong, visible animation
+                            NavController navController = Navigation.findNavController(getView());
+                            androidx.navigation.NavOptions navOptions = new androidx.navigation.NavOptions.Builder()
+                                .setEnterAnim(R.anim.slide_up_fade_in)
+                                .setExitAnim(R.anim.slide_down_fade_out)
+                                .setPopEnterAnim(R.anim.slide_in_left)
+                                .setPopExitAnim(R.anim.slide_out_right)
+                                .build();
+                            navController.navigate(R.id.action_signin_to_home, null, navOptions);
 
-                            // Show bottom navigation when entering main app
+                            // Show bottom navigation when entering main app (after navigation starts)
                             if (getActivity() != null) {
                                 View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
                                 if (bottomNav != null) {
@@ -233,15 +241,10 @@ public class SignInFragment extends Fragment implements GoogleSignInHelper.Googl
                                 }
                             }
 
-                            // Navigate to home with smooth animation
-                            NavController navController = Navigation.findNavController(getView());
-                            androidx.navigation.NavOptions navOptions = new androidx.navigation.NavOptions.Builder()
-                                .setEnterAnim(R.anim.slide_in_smooth)
-                                .setExitAnim(R.anim.slide_out_smooth)
-                                .setPopEnterAnim(R.anim.slide_in_left)
-                                .setPopExitAnim(R.anim.slide_out_right)
-                                .build();
-                            navController.navigate(R.id.action_signin_to_home, null, navOptions);
+                            // Show success message after navigation starts
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                Toast.makeText(getContext(), "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                            }, 100);
                         } else {
                             Toast.makeText(getContext(), "Đăng nhập thất bại. Dữ liệu không hợp lệ.", Toast.LENGTH_LONG).show();
                         }
@@ -276,7 +279,7 @@ public class SignInFragment extends Fragment implements GoogleSignInHelper.Googl
         bundle.putString("email", email);
         
         NavController navController = Navigation.findNavController(requireView());
-        navController.navigate(R.id.action_signin_to_otp, bundle);
+        navController.navigate(R.id.otpVerificationFragment, bundle);
     }
     
     private void setGoogleSignInLoading(boolean isLoading) {

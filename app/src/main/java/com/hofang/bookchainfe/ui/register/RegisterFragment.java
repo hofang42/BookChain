@@ -235,19 +235,20 @@ public class RegisterFragment extends Fragment {
                     if (apiResponse.isSuccess()) {
                         AuthResponse authResponse = apiResponse.getData();
                         
-                        // Check if requires verification (new flow)
-                        if (authResponse != null && authResponse.isRequiresVerification()) {
-                            String responseEmail = authResponse.getEmail();
-                            if (responseEmail != null && !responseEmail.isEmpty()) {
-                                // Navigate directly to OTP screen
-                                Toast.makeText(getContext(), "Mã xác thực đã được gửi đến email của bạn", Toast.LENGTH_SHORT).show();
-                                navigateToOTPVerification(responseEmail);
+                        // Check if requires verification (new flow) - check from ApiResponse top level
+                        if (apiResponse.isRequiresVerification()) {
+                            // Server already sent OTP, just navigate to OTP screen
+                            String responseEmail = null;
+                            if (authResponse != null && authResponse.getEmail() != null && !authResponse.getEmail().isEmpty()) {
+                                responseEmail = authResponse.getEmail();
                             } else {
                                 // Fallback to original email
-                                navigateToOTPVerification(email);
+                                responseEmail = email;
                             }
+                            Toast.makeText(getContext(), "Mã xác thực đã được gửi đến email của bạn", Toast.LENGTH_SHORT).show();
+                            navigateToOTPVerification(responseEmail);
                         } else {
-                            // Old flow - send OTP manually
+                            // Old flow - send OTP manually (should not happen with current backend)
                             Toast.makeText(getContext(), "Đăng ký thành công! Vui lòng kiểm tra email để nhận mã xác thực.", Toast.LENGTH_LONG).show();
                             sendVerificationOTP(email);
                         }
