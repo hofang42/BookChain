@@ -52,6 +52,9 @@ dependencies {
     // JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")
     
+    // Image loading - Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    
     // SharedPreferences (for token storage)
     implementation("androidx.preference:preference:1.2.1")
     
