@@ -42,10 +42,21 @@ public class CartManager {
 
     // Add item to cart
     public void addToCart(Book book, int quantity) {
+        if (book == null) {
+            android.util.Log.e("CartManager", "addToCart: Book is null");
+            return;
+        }
+        
+        String bookId = book.getId();
+        if (bookId == null || bookId.isEmpty()) {
+            android.util.Log.e("CartManager", "addToCart: Book ID is null or empty");
+            return;
+        }
+        
         List<CartItem> cartItems = getCartItems();
         
         // Check if book already exists in cart
-        CartItem existingItem = findCartItem(cartItems, book.getId());
+        CartItem existingItem = findCartItem(cartItems, bookId);
         
         if (existingItem != null) {
             // Update quantity
@@ -153,9 +164,19 @@ public class CartManager {
     }
 
     private CartItem findCartItem(List<CartItem> cartItems, String identifier) {
+        if (identifier == null) {
+            return null;
+        }
+        
         for (CartItem item : cartItems) {
-            if (item.getId().equals(identifier) || 
-                (item.getBook() != null && item.getBook().getId().equals(identifier))) {
+            // Check cart item ID
+            if (item.getId() != null && item.getId().equals(identifier)) {
+                return item;
+            }
+            
+            // Check book ID
+            if (item.getBook() != null && item.getBook().getId() != null && 
+                item.getBook().getId().equals(identifier)) {
                 return item;
             }
         }

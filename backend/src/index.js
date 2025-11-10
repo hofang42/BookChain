@@ -15,6 +15,7 @@ const { initializeSocket } = require("./services/socketService");
 const addressesRoutes = require("./routes/addresses");
 const cartRoutes = require("./routes/cartRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 const { handlePayOsWebhook } = require("./controllers/paymentController");
 
 // --- BƯỚC 1: Khởi tạo 'app' ĐẦU TIÊN ---
@@ -44,6 +45,7 @@ app.use("/api/addresses", addressesRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payments", paymentRoutes); // Route này giờ chỉ còn create-link và cancel-order
+app.use("/api", reviewRoutes);
 
 // --- BƯỚC 5: Error handler (thường nằm cuối) ---
 app.use(errorHandler);

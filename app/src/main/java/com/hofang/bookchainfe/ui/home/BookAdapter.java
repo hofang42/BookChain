@@ -2,13 +2,14 @@ package com.hofang.bookchainfe.ui.home;
 
 import android.content.Context;
 import android.graphics.Paint;
-import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -16,7 +17,6 @@ import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.network.ApiConfig; // Import ApiConfig
 
 import java.text.NumberFormat;
-import com.hofang.bookchainfe.ui.bookdetail.BookDetailActivity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -134,7 +134,7 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
         // --- Hết xử lý ảnh ---
         // Set click listener for the entire item
-        holder.itemView.setOnClickListener(v -> openBookDetail(book));
+        holder.itemView.setOnClickListener(v -> openBookDetail(book, v));
 
         if (holder.getItemViewType() == VIEW_TYPE_CARD) {
             CardViewHolder cardHolder = (CardViewHolder) holder;
@@ -172,34 +172,33 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    private void openBookDetail(BookItem book) {
-        Intent intent = new Intent(context, BookDetailActivity.class);
+    // Method that accepts View for Navigation
+    private void openBookDetail(BookItem book, View view) {
+        Bundle args = new Bundle();
+        
+        // Pass book data to detail fragment
+        args.putString("bookId", book.getId());
+        args.putString("title", book.getTitle());
+        args.putString("author", book.getAuthor());
 
-        // Pass book data to detail activity
-        intent.putExtra("title", book.getTitle());
-        intent.putExtra("author", book.getAuthor());
-
-        // --- SỬA 1: Truyền tên category (String), không phải đối tượng Category ---
+        // Truyền tên category (String)
         String categoryName = (book.getCategory() != null) ? book.getCategory().getName() : "N/A";
-        intent.putExtra("category", categoryName);
+        args.putString("category", categoryName);
 
-        // --- SỬA 3: Thêm logic truyền cả URL ảnh (cho sách từ API) ---
-        intent.putExtra("coverResId", book.getCoverImageResId()); // Cho sách hard-code
-        intent.putExtra("coverUrl", book.getCoverImage());       // Cho sách từ API
+        // Thêm logic truyền cả URL ảnh (cho sách từ API)
+        args.putInt("coverResId", book.getCoverImageResId()); // Cho sách hard-code
+        args.putString("coverUrl", book.getCoverImage());       // Cho sách từ API
 
-        // --- SỬA 2: Truyền giá (price) và giảm giá (discount) dưới dạng số (double/int) ---
-        // (Giả định getPrice() trả về double, dựa trên onBindViewHolder)
-        intent.putExtra("price", book.getPrice());
-
-        // (Giả định getDiscount() trả về double, dựa trên onBindViewHolder)
-        // Ép kiểu thành int nếu BookDetailActivity mong đợi số nguyên % (vd: 10)
-        intent.putExtra("discount", (int) book.getDiscount());
+        // Truyền giá (price) và giảm giá (discount)
+        args.putFloat("price", (float) book.getPrice());
+        args.putInt("discount", (int) book.getDiscount());
 
         // Default description
-        intent.putExtra("description", "This is a great book. More details coming soon.");
-        intent.putExtra("rating", 4.11);
+        args.putString("description", "This is a great book. More details coming soon.");
+        args.putFloat("rating", 4.11f);
 
-        context.startActivity(intent);
+        // Navigate using Navigation Component
+        Navigation.findNavController(view).navigate(R.id.action_home_to_book_detail, args);
     }
 
     @Override

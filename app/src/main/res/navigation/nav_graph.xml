@@ -151,6 +151,13 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_home_to_book_detail"
+            app:destination="@id/bookDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -167,6 +174,13 @@
         <action
             android:id="@+id/action_cart_to_checkout"
             app:destination="@id/checkoutFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_cart_to_book_detail"
+            app:destination="@id/bookDetailFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -305,6 +319,65 @@
             app:nullable="true"
             android:defaultValue="" />
 
+        <action
+            android:id="@+id/action_allBooks_to_book_detail"
+            app:destination="@id/bookDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/bookDetailFragment"
+        android:name="com.hofang.bookchainfe.ui.bookdetail.BookDetailFragment"
+        android:label="Book Detail"
+        tools:layout="@layout/fragment_book_detail">
+        <argument
+            android:name="bookId"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="title"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="author"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="category"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="price"
+            app:argType="float"
+            android:defaultValue="0.0" />
+        <argument
+            android:name="discount"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="description"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="coverImage"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="coverUrl"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="coverResId"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="rating"
+            app:argType="float"
+            android:defaultValue="4.0" />
     </fragment>
 
 </navigation>

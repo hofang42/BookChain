@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -265,9 +266,26 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
     @Override
     public void onItemClicked(CartItem item) {
         // Navigate to book detail if needed
-        if (item != null && item.getBook() != null) {
-            // TODO: Navigate to book detail
-            Toast.makeText(getContext(), "Book: " + item.getBook().getTitle(), Toast.LENGTH_SHORT).show();
+        if (item != null && item.getBook() != null && getView() != null) {
+            Bundle args = new Bundle();
+            Book book = item.getBook();
+            
+            args.putString("bookId", book.getId());
+            args.putString("title", book.getTitle());
+            args.putString("author", book.getAuthor());
+            
+            String categoryName = (book.getCategory() != null) ? book.getCategory().getName() : "N/A";
+            args.putString("category", categoryName);
+            
+            args.putFloat("price", book.getPrice() != null ? book.getPrice().floatValue() : 0.0f);
+            args.putInt("discount", book.getDiscount() != null ? book.getDiscount() : 0);
+            args.putString("description", book.getDescription());
+            args.putString("coverImage", book.getCoverImage());
+            args.putString("coverUrl", book.getCoverImage());
+            args.putInt("coverResId", 0);
+            args.putFloat("rating", book.getRating() != null ? book.getRating().floatValue() : 4.0f);
+            
+            Navigation.findNavController(getView()).navigate(R.id.action_cart_to_book_detail, args);
         }
     }
 
