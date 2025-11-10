@@ -275,7 +275,7 @@ public class CheckoutFragment extends Fragment {
         List<CreatePaymentRequest.PaymentItem> paymentItems = new ArrayList<>();
         for (CartItem item : cartItems) {
             String bookId = item.getBook().getId();
-            float price = (float) item.getBook().getFinalPrice();
+            float price = item.getBook().getFinalPrice().floatValue();
 
             paymentItems.add(new CreatePaymentRequest.PaymentItem(
                     bookId,

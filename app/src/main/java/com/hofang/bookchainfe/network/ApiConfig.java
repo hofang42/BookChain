@@ -72,4 +72,17 @@ public class ApiConfig {
         checkInit();
         return retrofit.create(PaymentApiService.class);
     }
+
+    public static AddressApiService getAddressApiService() {
+        checkInit();
+        return retrofit.create(AddressApiService.class);
+    }
+
+    /**
+     * Trả về instance Retrofit (để tạo service tùy chỉnh nếu cần).
+     */
+    public static Retrofit getRetrofit() {
+        checkInit();
+        return retrofit;
+    }
 }
