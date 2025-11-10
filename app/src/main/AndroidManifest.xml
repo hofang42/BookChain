@@ -4,6 +4,13 @@
 
     <!-- Allow network calls -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Allow notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Allow vibration for notifications -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Foreground service permission (Android 14+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:allowBackup="true"
@@ -44,6 +51,25 @@
             android:name=".ui.checkout.CheckoutActivity"
             android:exported="false"
             android:parentActivityName=".ui.cart.CartActivity" />
+
+        <!-- Message Activity -->
+        <activity
+            android:name=".ui.message.MessageActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+        
+        <!-- Chat Detail Activity -->
+        <activity
+            android:name=".ui.message.ChatDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.message.MessageActivity" />
+        
+        <!-- Chat Notification Service - Foreground Service -->
+        <service
+            android:name=".services.ChatNotificationService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
             
     </application>
 

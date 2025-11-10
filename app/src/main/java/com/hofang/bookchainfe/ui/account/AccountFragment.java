@@ -24,6 +24,7 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.hofang.bookchainfe.network.ApiConfig;
+import com.hofang.bookchainfe.network.SocketService;
 import com.hofang.bookchainfe.utils.TokenManager;
 
 import java.io.BufferedReader;
@@ -96,6 +97,13 @@ public class AccountFragment extends Fragment {
     }
 
     private void performLogout() {
+        // Disconnect Socket.IO first to clear old connection
+        if (getContext() != null) {
+            SocketService socketService = SocketService.getInstance(getContext());
+            socketService.disconnect();
+            Log.d("AccountFragment", "Socket.IO disconnected on logout");
+        }
+        
         // Clear user session
         tokenManager.clearSession();
         

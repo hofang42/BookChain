@@ -1,20 +1,25 @@
 package com.hofang.bookchainfe.ui.home;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
+
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.hofang.bookchainfe.R;
+import com.hofang.bookchainfe.ui.message.MessageActivity;
+
 import java.util.ArrayList;
 
 public class HomeFragment extends Fragment {
@@ -34,6 +39,7 @@ public class HomeFragment extends Fragment {
     private RecyclerView rvTopBooks, rvUpcomingBooks, rvLatestBooks;
     private View headerTopBooks, headerUpcomingBooks, headerLatestBooks;
     private ChipGroup chipGroupTopBooks;
+    private View btnHomeMessage;
 
     @Nullable
     @Override
@@ -62,6 +68,7 @@ public class HomeFragment extends Fragment {
         headerUpcomingBooks = view.findViewById(R.id.header_upcoming_books);
         headerLatestBooks = view.findViewById(R.id.header_latest_books);
         chipGroupTopBooks = view.findViewById(R.id.chip_group_top_books);
+        btnHomeMessage = view.findViewById(R.id.btn_home_message);
     }
 
     private void loadData() {
@@ -154,6 +161,11 @@ public class HomeFragment extends Fragment {
             // TODO: Gọi API để fetch/filter lại 'topBooksList'
             Toast.makeText(getContext(), "Filter Top Books by: " + filter, Toast.LENGTH_SHORT).show();
             // Ví dụ: viewModel.fetchTopBooks(filter);
+        });
+
+        btnHomeMessage.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), MessageActivity.class);
+            startActivity(intent);
         });
     }
 }

@@ -1,5 +1,7 @@
 package com.hofang.bookchainfe.network;
 
+import android.content.Context;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -19,17 +21,32 @@ public class ApiConfig {
     public static final String BRANCHES = BASE_URL + "api/branches";
 
     private static Retrofit retrofit;
+    private static Context appContext;
+
+    public static void init(Context context) {
+        appContext = context.getApplicationContext();
+    }
 
     public static Retrofit getRetrofit() {
         if (retrofit == null) {
+            if (appContext == null) {
+                throw new IllegalStateException("ApiConfig.init() must be called first");
+            }
+
             // Create logging interceptor
             HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-            // Create OkHttp client
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .addInterceptor(loggingInterceptor)
-                    .build();
+            // Create OkHttp client with auth interceptor
+            OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
+                    .addInterceptor(loggingInterceptor);
+            
+            // Add auth interceptor if context is available
+            if (appContext != null) {
+                clientBuilder.addInterceptor(new AuthInterceptor(appContext));
+            }
+
+            OkHttpClient client = clientBuilder.build();
 
             // Create Retrofit instance
             retrofit = new Retrofit.Builder()
@@ -43,5 +60,9 @@ public class ApiConfig {
 
     public static AuthApiService getAuthApiService() {
         return getRetrofit().create(AuthApiService.class);
+    }
+
+    public static ChatApiService getChatApiService() {
+        return getRetrofit().create(ChatApiService.class);
     }
 }
