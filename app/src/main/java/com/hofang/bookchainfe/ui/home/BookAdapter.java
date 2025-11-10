@@ -174,39 +174,31 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private void openBookDetail(BookItem book) {
         Intent intent = new Intent(context, BookDetailActivity.class);
-        
+
         // Pass book data to detail activity
         intent.putExtra("title", book.getTitle());
         intent.putExtra("author", book.getAuthor());
-        intent.putExtra("category", book.getCategory());
-        intent.putExtra("coverResId", book.getCoverImageResId());
-        
-        // Parse price
-        if (book.getPrice() != null && !book.getPrice().isEmpty()) {
-            String priceStr = book.getPrice().replace("$", "").trim();
-            try {
-                double price = Double.parseDouble(priceStr);
-                intent.putExtra("price", price);
-            } catch (NumberFormatException e) {
-                intent.putExtra("price", 0.0);
-            }
-        }
-        
-        // Parse discount
-        if (book.getDiscount() != null && !book.getDiscount().isEmpty()) {
-            String discountStr = book.getDiscount().replace("% off", "").replace("%", "").trim();
-            try {
-                int discount = Integer.parseInt(discountStr);
-                intent.putExtra("discount", discount);
-            } catch (NumberFormatException e) {
-                intent.putExtra("discount", 0);
-            }
-        }
-        
+
+        // --- SỬA 1: Truyền tên category (String), không phải đối tượng Category ---
+        String categoryName = (book.getCategory() != null) ? book.getCategory().getName() : "N/A";
+        intent.putExtra("category", categoryName);
+
+        // --- SỬA 3: Thêm logic truyền cả URL ảnh (cho sách từ API) ---
+        intent.putExtra("coverResId", book.getCoverImageResId()); // Cho sách hard-code
+        intent.putExtra("coverUrl", book.getCoverImage());       // Cho sách từ API
+
+        // --- SỬA 2: Truyền giá (price) và giảm giá (discount) dưới dạng số (double/int) ---
+        // (Giả định getPrice() trả về double, dựa trên onBindViewHolder)
+        intent.putExtra("price", book.getPrice());
+
+        // (Giả định getDiscount() trả về double, dựa trên onBindViewHolder)
+        // Ép kiểu thành int nếu BookDetailActivity mong đợi số nguyên % (vd: 10)
+        intent.putExtra("discount", (int) book.getDiscount());
+
         // Default description
         intent.putExtra("description", "This is a great book. More details coming soon.");
         intent.putExtra("rating", 4.11);
-        
+
         context.startActivity(intent);
     }
 
