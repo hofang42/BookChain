@@ -60,8 +60,4 @@
             android:parentActivityName=".ui.cart.CartActivity" />
             
     </application>
-
-        <!-- Đã xóa PaymentHandlerActivity vì không còn cần thiết -->
-
-    </application>
 </manifest>
