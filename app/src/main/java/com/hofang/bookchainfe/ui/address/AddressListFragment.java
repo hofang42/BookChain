@@ -13,9 +13,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.model.Address;
@@ -55,13 +57,6 @@ public class AddressListFragment extends Fragment implements AddressAdapter.OnAd
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // Hide bottom navigation when entering Address List screen
-        if (getActivity() != null) {
-            View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
-            if (bottomNav != null) {
-                bottomNav.setVisibility(View.GONE);
-            }
-        }
         return inflater.inflate(R.layout.fragment_address_list, container, false);
     }
 
@@ -75,6 +70,12 @@ public class AddressListFragment extends Fragment implements AddressAdapter.OnAd
         tvError = view.findViewById(R.id.tv_error);
         layoutEmptyState = view.findViewById(R.id.layout_empty_state);
         MaterialButton btnAddNewAddress = view.findViewById(R.id.btn_add_new_address);
+        MaterialToolbar toolbar = view.findViewById(R.id.toolbar);
+
+        // Set up toolbar back button
+        toolbar.setNavigationOnClickListener(v -> {
+            Navigation.findNavController(view).navigateUp();
+        });
 
         // Initialize API service and token manager
         addressApiService = ApiConfig.getRetrofit().create(AddressApiService.class);
@@ -263,17 +264,5 @@ public class AddressListFragment extends Fragment implements AddressAdapter.OnAd
 
     private void hideEmptyState() {
         layoutEmptyState.setVisibility(View.GONE);
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        // Show bottom navigation when leaving Address List screen
-        if (getActivity() != null) {
-            View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
-            if (bottomNav != null) {
-                bottomNav.setVisibility(View.VISIBLE);
-            }
-        }
     }
 }
