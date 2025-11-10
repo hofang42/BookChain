@@ -1,6 +1,10 @@
 package com.hofang.bookchainfe.model;
 
-public class Address {
+import com.google.gson.annotations.SerializedName;
+import java.io.Serializable;
+
+public class Address implements Serializable {
+    @SerializedName("_id")
     private String id;
     private String userId;
     private String recipientName;

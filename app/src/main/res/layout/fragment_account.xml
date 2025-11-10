@@ -192,7 +192,7 @@
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="@dimen/account_card_height"
                     android:layout_marginTop="@dimen/account_card_margin_top"
                     app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
@@ -200,32 +200,67 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="12dp">
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:id="@+id/label_phone"
+                            android:layout_width="@dimen/account_label_width"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:text="Phone:"
+                            style="@style/TextAppearance.Account.Label" />
 
-                            <TextView
-                                android:id="@+id/label_address"
-                                android:layout_width="@dimen/account_label_width"
-                                android:layout_height="wrap_content"
-                                android:text="Address:"
-                                style="@style/TextAppearance.Account.Label" />
+                        <TextView
+                            android:id="@+id/value_phone"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="-"
+                            style="@style/TextAppearance.Account.Value"
+                            android:gravity="center_vertical|start"
+                            android:paddingStart="12dp" />
 
-                            <TextView
-                                android:id="@+id/value_address"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="No.23, James Street,\nNew Town, North\nProvince"
-                                style="@style/TextAppearance.Account.Value"
-                                android:layout_marginTop="6dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
-                        </LinearLayout>
+                <!-- Manage Addresses Section -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_manage_addresses"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/account_card_height"
+                    android:layout_marginTop="@dimen/account_card_margin_top"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/account_card_gray"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Manage Addresses"
+                            android:textSize="16sp"
+                            android:textColor="@color/accent_black"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            android:tint="@color/accent_black" />
 
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

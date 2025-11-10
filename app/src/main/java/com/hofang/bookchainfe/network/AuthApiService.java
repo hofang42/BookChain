@@ -8,11 +8,16 @@ import com.hofang.bookchainfe.model.PasswordResetOTPResponse;
 import com.hofang.bookchainfe.model.RegisterRequest;
 import com.hofang.bookchainfe.model.ResetPasswordRequest;
 import com.hofang.bookchainfe.model.SendOTPRequest;
+import com.hofang.bookchainfe.model.UpdateProfileRequest;
+import com.hofang.bookchainfe.model.UserProfileResponse;
 import com.hofang.bookchainfe.model.VerifyOTPRequest;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 
 public interface AuthApiService {
     
@@ -42,4 +47,13 @@ public interface AuthApiService {
     
     @POST("api/auth/reset-password")
     Call<ApiResponse<AuthResponse>> resetPassword(@Body ResetPasswordRequest request);
+
+    @GET("api/auth/me")
+    Call<ApiResponse<UserProfileResponse>> getCurrentProfile(@Header("Authorization") String token);
+
+    @PUT("api/auth/profile")
+    Call<ApiResponse<UserProfileResponse>> updateProfile(
+            @Header("Authorization") String token,
+            @Body UpdateProfileRequest request
+    );
 }

@@ -6,6 +6,7 @@ const booksRoutes = require("./routes/books");
 const categoryRoutes = require("./routes/categories");
 const branchesRoutes = require("./routes/branches");
 const authRoutes = require("./routes/auth");
+const addressesRoutes = require("./routes/addresses");
 const cartRoutes = require("./routes/cartRoutes");
 const cors = require("cors");
 const { errorHandler } = require("./middleware/errorHandler");
@@ -35,6 +36,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/books", booksRoutes);
 app.use("/api/branches", branchesRoutes);
+app.use("/api/addresses", addressesRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payments", paymentRoutes); // Route này giờ chỉ còn create-link và cancel-order
