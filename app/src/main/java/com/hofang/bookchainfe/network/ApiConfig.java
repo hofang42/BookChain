@@ -86,6 +86,11 @@ public class ApiConfig {
         return retrofit.create(AddressApiService.class);
     }
 
+    public static ReviewApiService getReviewApiService() {
+        checkInit();
+        return retrofit.create(ReviewApiService.class);
+    }
+
     /**
      * Trả về instance Retrofit (để tạo service tùy chỉnh nếu cần).
      */

@@ -8,12 +8,32 @@ exports.getBookReviews = async (req, res) => {
     const { bookId } = req.params;
 
     const reviews = await Review.find({ bookId })
-      .populate("userId", "fullName username email")
-      .sort({ createdAt: -1 });
+      .populate({
+        path: "userId",
+        select: "fullName username email _id",
+        model: "User"
+      })
+      .sort({ createdAt: -1 })
+      .lean(); // Use lean() to get plain JavaScript objects
+
+    // Ensure userId is properly populated (not just ObjectId)
+    const reviewsWithUser = reviews.map(review => {
+      if (review.userId && typeof review.userId === 'object' && review.userId._id) {
+        // userId is populated, ensure it has the correct structure
+        review.userId = {
+          _id: review.userId._id,
+          id: review.userId._id.toString(),
+          fullName: review.userId.fullName,
+          username: review.userId.username,
+          email: review.userId.email
+        };
+      }
+      return review;
+    });
 
     res.json({
       success: true,
-      data: reviews,
+      data: reviewsWithUser,
     });
   } catch (error) {
     console.error("Error fetching reviews:", error);

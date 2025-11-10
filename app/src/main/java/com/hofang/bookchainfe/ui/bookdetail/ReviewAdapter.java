@@ -99,8 +99,26 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         if (createdAt == null) return "Recently";
         
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-            Date date = sdf.parse(createdAt);
+            // Try multiple date formats to handle different ISO 8601 variations
+            Date date = null;
+            String[] formats = {
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",  // With milliseconds and Z
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",      // Without milliseconds, with Z
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",     // With milliseconds, no Z
+                "yyyy-MM-dd'T'HH:mm:ss",         // Basic format
+                "yyyy-MM-dd HH:mm:ss"            // Alternative format
+            };
+            
+            for (String format : formats) {
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
+                    sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                    date = sdf.parse(createdAt);
+                    if (date != null) break;
+                } catch (Exception e) {
+                    // Try next format
+                }
+            }
             
             if (date != null) {
                 long timeInMillis = date.getTime();
@@ -129,7 +147,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            android.util.Log.e("ReviewAdapter", "Error parsing date: " + createdAt + " - " + e.getMessage());
         }
         
         return "Recently";

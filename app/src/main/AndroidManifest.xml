@@ -47,24 +47,6 @@
                     android:pathPrefix="/result" />
             </intent-filter>
         </activity>
-        
-        <!-- Book Detail Activity -->
-        <activity
-            android:name=".ui.bookdetail.BookDetailActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
-        
-        <!-- Cart Activity -->
-        <activity
-            android:name=".ui.cart.CartActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
-        
-        <!-- Checkout Activity -->
-        <activity
-            android:name=".ui.checkout.CheckoutActivity"
-            android:exported="false"
-            android:parentActivityName=".ui.cart.CartActivity" />
 
         <!-- Message Activity -->
         <activity
