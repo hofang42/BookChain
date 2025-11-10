@@ -144,6 +144,13 @@
             app:destination="@id/paymentSuccessFragment"
             app:enterAnim="@anim/slide_up_fade_in"
             app:exitAnim="@anim/slide_down_fade_out" />
+        <action
+            android:id="@+id/action_nav_home_to_allBooksFragment"
+            app:destination="@id/allBooksFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -183,6 +190,10 @@
         android:name="com.hofang.bookchainfe.ui.checkout.CheckoutFragment"
         android:label="Checkout"
         tools:layout="@layout/fragment_checkout">
+        <argument
+            android:name="totalPrice"
+            app:argType="float"
+            android:defaultValue="0.0" />
         <action
             android:id="@+id/action_checkout_to_address"
             app:destination="@id/addressListFragment"
@@ -194,7 +205,10 @@
             android:id="@+id/action_checkout_to_payment_success"
             app:destination="@id/paymentSuccessFragment"
             app:enterAnim="@anim/slide_up_fade_in"
-            app:exitAnim="@anim/slide_down_fade_out" />
+            app:exitAnim="@anim/slide_down_fade_out"
+
+            app:popUpTo="@id/checkoutFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
@@ -256,6 +270,20 @@
         <argument
             android:name="otp"
             app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/allBooksFragment"
+        android:name="com.hofang.bookchainfe.ui.book.AllBooksFragment"
+        android:label="Tất cả sách"
+        tools:layout="@layout/fragment_all_books">
+
+        <argument
+            android:name="searchQuery"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="" />
+
     </fragment>
 
 </navigation>

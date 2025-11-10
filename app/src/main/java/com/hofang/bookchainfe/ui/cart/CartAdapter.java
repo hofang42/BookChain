@@ -1,59 +1,65 @@
 package com.hofang.bookchainfe.ui.cart;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.bumptech.glide.Glide;
 import com.hofang.bookchainfe.R;
-import com.hofang.bookchainfe.model.CartItem;
-
+import com.hofang.bookchainfe.model.CartResponse.CartItem; // (model bạn sẽ tạo)
+import com.hofang.bookchainfe.network.ApiConfig;
+import com.hofang.bookchainfe.ui.home.BookItem;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder> {
+
     private List<CartItem> cartItems = new ArrayList<>();
-    private CartItemListener listener;
+    private Context context;
+    private NumberFormat currencyFormatter;
 
-    public interface CartItemListener {
-        void onQuantityChanged(CartItem item, int newQuantity);
-        void onItemDeleted(CartItem item, int position);
-        void onSelectionChanged(CartItem item, boolean isSelected);
-        void onItemClicked(CartItem item);
-    }
+    // --- BƯỚC 1: THÊM LISTENER INTERFACE ---
+    private OnCartItemInteractionListener listener;
 
-    public CartAdapter(CartItemListener listener) {
-        this.listener = listener;
+    public interface OnCartItemInteractionListener {
+        void onRemoveItemClicked(CartItem cartItem);
     }
+    // ----------------------------------------
 
-    public void setCartItems(List<CartItem> items) {
-        this.cartItems = items;
-        notifyDataSetChanged();
+    // --- BƯỚC 2: CẬP NHẬT CONSTRUCTOR ---
+    public CartAdapter(Context context, OnCartItemInteractionListener listener) {
+        this.context = context;
+        this.listener = listener; // Gán listener
+        this.currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
     }
-
-    public List<CartItem> getCartItems() {
-        return cartItems;
-    }
+    // ----------------------------------------
 
     @NonNull
     @Override
     public CartViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_cart, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.cart_item_cart, parent, false);
         return new CartViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull CartViewHolder holder, int position) {
         CartItem item = cartItems.get(position);
-        holder.bind(item);
+        holder.bind(item, context, currencyFormatter);
+
+        // --- BƯỚC 3: GÁN SỰ KIỆN CLICK CHO NÚT XÓA ---
+        holder.btnRemoveItem.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onRemoveItemClicked(item);
+            }
+        });
+        // ---------------------------------------------
     }
 
     @Override
@@ -61,97 +67,45 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         return cartItems.size();
     }
 
-    class CartViewHolder extends RecyclerView.ViewHolder {
-        private CheckBox cbSelect;
-        private ImageView ivBookCover;
-        private TextView tvBookTitle;
-        private TextView tvQuantity;
-        private TextView tvPrice;
-        private TextView btnDecrease;
-        private TextView btnIncrease;
-        private ImageView btnDelete;
+    public void setData(List<CartItem> items) {
+        this.cartItems = items;
+        notifyDataSetChanged();
+    }
+
+    // --- ViewHolder ---
+    static class CartViewHolder extends RecyclerView.ViewHolder {
+        ImageView ivBookCover;
+        TextView tvBookTitle, tvBookPrice, tvQuantity;
+        ImageButton btnRemoveItem;
 
         public CartViewHolder(@NonNull View itemView) {
             super(itemView);
-            cbSelect = itemView.findViewById(R.id.cb_select);
             ivBookCover = itemView.findViewById(R.id.iv_book_cover);
             tvBookTitle = itemView.findViewById(R.id.tv_book_title);
+            tvBookPrice = itemView.findViewById(R.id.tv_book_price);
             tvQuantity = itemView.findViewById(R.id.tv_quantity);
-            tvPrice = itemView.findViewById(R.id.tv_price);
-            btnDecrease = itemView.findViewById(R.id.btn_decrease);
-            btnIncrease = itemView.findViewById(R.id.btn_increase);
-            btnDelete = itemView.findViewById(R.id.btn_delete);
+            btnRemoveItem = itemView.findViewById(R.id.btn_remove_item);
         }
 
-        public void bind(CartItem item) {
-            // Set checkbox state
-            cbSelect.setChecked(item.isSelected());
-            cbSelect.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                item.setSelected(isChecked);
-                if (listener != null) {
-                    listener.onSelectionChanged(item, isChecked);
-                }
-            });
+        void bind(CartItem cartItem, Context context, NumberFormat formatter) {
+            BookItem book = cartItem.getBook();
+            if (book == null) return;
 
-            // Load book cover
-            if (item.getBook().getCoverImage() != null && !item.getBook().getCoverImage().isEmpty()) {
-                Glide.with(itemView.getContext())
-                        .load(item.getBook().getCoverImage())
-                        .placeholder(R.drawable.ic_book_placeholder)
-                        .error(R.drawable.ic_book_placeholder)
-                        .into(ivBookCover);
-            } else {
-                ivBookCover.setImageResource(R.drawable.ic_book_placeholder);
+            tvBookTitle.setText(book.getTitle());
+            tvBookPrice.setText(formatter.format(book.getPrice()));
+
+            // Sửa lại logic hiển thị số lượng cho đúng với layout
+            tvQuantity.setText(String.valueOf(cartItem.getQuantity()));
+
+            // Tải ảnh
+            String baseUrl = ApiConfig.BASE_URL;
+            if (baseUrl.endsWith("/")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
             }
+            String imageUrl = baseUrl + book.getCoverImage();
+            Glide.with(context).load(imageUrl).placeholder(R.drawable.discount_badge_bg).into(ivBookCover);
 
-            // Set book title
-            tvBookTitle.setText(item.getBook().getTitle());
-
-            // Set quantity
-            tvQuantity.setText(String.valueOf(item.getQuantity()));
-
-            // Set price (subtotal for this item)
-            tvPrice.setText(String.format(Locale.US, "$%.2f", item.getSubtotal()));
-
-            // Decrease quantity
-            btnDecrease.setOnClickListener(v -> {
-                int currentQuantity = item.getQuantity();
-                if (currentQuantity > 1) {
-                    int newQuantity = currentQuantity - 1;
-                    item.setQuantity(newQuantity);
-                    tvQuantity.setText(String.valueOf(newQuantity));
-                    tvPrice.setText(String.format(Locale.US, "$%.2f", item.getSubtotal()));
-                    if (listener != null) {
-                        listener.onQuantityChanged(item, newQuantity);
-                    }
-                }
-            });
-
-            // Increase quantity
-            btnIncrease.setOnClickListener(v -> {
-                int currentQuantity = item.getQuantity();
-                int newQuantity = currentQuantity + 1;
-                item.setQuantity(newQuantity);
-                tvQuantity.setText(String.valueOf(newQuantity));
-                tvPrice.setText(String.format(Locale.US, "$%.2f", item.getSubtotal()));
-                if (listener != null) {
-                    listener.onQuantityChanged(item, newQuantity);
-                }
-            });
-
-            // Delete item
-            btnDelete.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onItemDeleted(item, getAdapterPosition());
-                }
-            });
-
-            // Click on item to view book details
-            itemView.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onItemClicked(item);
-                }
-            });
+            // Listener sẽ được gán ở onBindViewHolder
         }
     }
 }

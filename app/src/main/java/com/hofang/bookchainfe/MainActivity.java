@@ -1,7 +1,9 @@
 package com.hofang.bookchainfe;
 
-import android.os.Bundle;
+import android.content.Intent;
 import android.graphics.Color;
+import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,54 +16,62 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.hofang.bookchainfe.ui.payment.PaymentDeepLinkHandler; // <-- Import lớp mới
+import com.hofang.bookchainfe.network.ApiConfig;
 
 public class MainActivity extends AppCompatActivity {
+
+    private NavController navController;
+    private PaymentDeepLinkHandler paymentHandler; // <-- Khai báo biến
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ApiConfig.init(getApplicationContext());
+
         setContentView(R.layout.activity_main);
 
-        // Make status bar white with dark icons
+        // --- Khởi tạo Payment Handler ---
+        paymentHandler = new PaymentDeepLinkHandler(this);
+
         getWindow().setStatusBarColor(Color.WHITE);
         WindowInsetsControllerCompat insetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
         insetsController.setAppearanceLightStatusBars(true);
 
-        // Setup Navigation Component
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
 
         if (navHostFragment != null) {
-            NavController navController = navHostFragment.getNavController();
-
-            // Setup Bottom Navigation with Navigation Component
+            navController = navHostFragment.getNavController();
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
             if (bottomNav != null) {
-                // Hide bottom navigation initially (will be shown when user enters main app)
                 bottomNav.setVisibility(View.GONE);
-                
-                // Force labels to show
                 bottomNav.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
-
-                // Connect Bottom Navigation with NavController - auto handles navigation
                 NavigationUI.setupWithNavController(bottomNav, navController);
-
-                // Handle window insets for bottom navigation
                 ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, insets) -> {
                     Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-                    // Apply bottom padding to avoid system nav bar overlap
-                    v.setPadding(
-                        v.getPaddingLeft(),
-                        v.getPaddingTop(),
-                        v.getPaddingRight(),
-                        systemBars.bottom
-                    );
-
+                    v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), systemBars.bottom);
                     return insets;
                 });
             }
         }
+
+        // Giao việc xử lý Intent cho lớp helper
+        if (navController != null) {
+            paymentHandler.handleIntent(getIntent(), navController);
+        }
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        Log.d(TAG, "onNewIntent called with data: " + intent.getDataString());
+
+        // Giao việc xử lý Intent mới cho lớp helper
+        if (navController != null) {
+            paymentHandler.handleIntent(intent, navController);
+        }
+    }
 }
