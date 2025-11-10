@@ -1,5 +1,6 @@
 const Book = require("../models/Book");
 const Category = require("../models/Category");
+const { removeAccents } = require("../utils/helpers");
 
 /**
  * @desc    Lấy sách giảm giá tốt nhất
@@ -98,42 +99,53 @@ const getAllBooks = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Lấy tất cả tham số query
     const { q, sortBy, order } = req.query;
 
     console.log(
       `Controller: Lấy tất cả sách - Trang ${page}, Giới hạn ${limit}, Query: ${q}`
     );
 
-    // 1. Xây dựng bộ lọc (filter) - Gộp từ getBooks
+    // 1. Xây dựng bộ lọc (filter) - SỬA LẠI LOGIC TÌM KIẾM
     const filter = {};
+
     if (q) {
-      filter.$text = { $search: q };
+      // Chuyển query của người dùng sang không dấu, chữ thường
+      const searchQuery = removeAccents(q.toLowerCase());
+
+      // Tạo một biểu thức Regex để tìm kiếm
+      // 'i' = không phân biệt hoa thường (mặc dù chúng ta đã dùng toLowerCase)
+      const searchRegex = new RegExp(searchQuery, "i");
+
+      // Tìm kiếm trên CẢ 3 trường không dấu
+      filter.$or = [
+        { title_unaccented: searchRegex },
+        { author_unaccented: searchRegex },
+        { description_unaccented: searchRegex },
+      ];
+
+      // Bỏ logic $text cũ
+      // filter.$text = { $search: q };
     }
 
     // 2. Xây dựng tùy chọn sắp xếp (sort)
     let sortOptions = {};
     if (sortBy && order) {
       sortOptions[sortBy] = order === "desc" ? -1 : 1;
-    } else if (q) {
-      // Nếu tìm kiếm, ưu tiên sắp xếp theo điểm liên quan
-      sortOptions = { score: { $meta: "textScore" } };
     } else {
       // Mặc định sắp xếp theo mới nhất
       sortOptions = { createdAt: "desc" };
     }
-
-    // Thêm projection để lấy textScore nếu tìm kiếm
-    const projection = q ? { score: { $meta: "textScore" } } : {};
+    // Bỏ logic textScore
+    // const projection = q ? { score: { $meta: "textScore" } } : {};
 
     // 3. Thực thi query
     const [books, totalItems] = await Promise.all([
-      Book.find(filter, projection) // <-- Áp dụng filter và projection
-        .sort(sortOptions) // <-- Áp dụng sort
+      Book.find(filter) // Bỏ projection
+        .sort(sortOptions)
         .skip(skip)
         .limit(limit)
         .populate("categoryId"),
-      Book.countDocuments(filter), // <-- Áp dụng filter
+      Book.countDocuments(filter),
     ]);
 
     const totalPages = Math.ceil(totalItems / limit);
@@ -215,6 +227,38 @@ const getBookById = async (req, res, next) => {
   }
 };
 
+const uploadBookCover = async (req, res) => {
+  try {
+    // 1. Kiểm tra xem middleware 'uploadCloud' có upload file thành công không?
+    if (!req.file) {
+      return res.status(400).json({ msg: "Lỗi: Không có file nào được chọn." });
+    }
+
+    // 2. Middleware đã upload file lên Cloudinary
+    //    Thông tin file nằm trong req.file
+    //    URL của ảnh nằm trong req.file.path
+    const imageUrl = req.file.path;
+    const publicId = req.file.filename; // Đây là public_id để sau này có thể xóa
+
+    // (Tùy chọn) Lấy thêm thông tin từ body, ví dụ bookId
+    // const { bookId } = req.body;
+    // (Tùy chọn) Lưu imageUrl vào database
+    // await Book.findByIdAndUpdate(bookId, { coverImageUrl: imageUrl });
+
+    // 3. Trả về kết quả
+    res.status(200).json({
+      message: "Upload ảnh bìa thành công!",
+      imageUrl: imageUrl,
+      publicId: publicId,
+    });
+  } catch (error) {
+    res.status(500).json({
+      msg: "Lỗi server khi upload ảnh",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getBestDeals,
   getTopBooks,
@@ -223,4 +267,5 @@ module.exports = {
   getAllBooks,
   getBooksByCategory,
   getBookById,
+  uploadBookCover,
 };

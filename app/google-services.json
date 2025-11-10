@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "164745417115",
+    "project_id": "bookchain-bc0b5",
+    "storage_bucket": "bookchain-bc0b5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:164745417115:android:a3e81bf2be91d5f7cfd13e",
+        "android_client_info": {
+          "package_name": "com.hofang.bookchainfe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "164745417115-ku8lh1kvmllh0v58gpj83m82lhiu5mqg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hofang.bookchainfe",
+            "certificate_hash": "fd50b7b369552c2fc22b1f7a64c8b7d058226195"
+          }
+        },
+        {
+          "client_id": "164745417115-tjpk1100lce87mgc95v782m4eq0a111n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hofang.bookchainfe",
+            "certificate_hash": "79e4eacdd0c4485d06f41ebc5c00cadcaaf38941"
+          }
+        },
+        {
+          "client_id": "164745417115-ohta6p2r4g5nj5reipujr8bugsr09vtd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcsb0pA4kgTf-W1jgIUpuZGS9YhekmRtM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "164745417115-ohta6p2r4g5nj5reipujr8bugsr09vtd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

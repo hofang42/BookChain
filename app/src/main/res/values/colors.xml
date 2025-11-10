@@ -7,6 +7,7 @@
     <color name="accent_black">#000000</color>
     <color name="accent_light">#F5F5F5</color>
     <color name="gray_border">#DEDEDE</color>
+    <color name="purple_500">#BF40BF</color>
     
     <!-- Welcome Screen Colors -->
     <color name="welcome_background">#F5F5F5</color>

@@ -20,9 +20,13 @@ const orderSchema = new Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["cash", "credit_card", "momo", "zalo_pay"],
+      // THÊM "payOS" VÀO ĐÂY
+      enum: ["cash", "credit_card", "momo", "zalo_pay", "payOS"],
     },
-    deliveryAddress: { type: String },
+    deliveryAddress: { type: String, required: true }, // Nên yêu cầu địa chỉ khi thanh toán online
+
+    // THÊM TRƯỜNG NÀY
+    orderCode: { type: Number, required: true, unique: true },
   },
   { timestamps: true }
 );
