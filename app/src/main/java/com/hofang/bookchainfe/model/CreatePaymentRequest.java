@@ -29,9 +29,9 @@ public class CreatePaymentRequest {
         private int quantity;
 
         @SerializedName("priceAtPurchase")
-        private float priceAtPurchase;
+        private double priceAtPurchase;
 
-        public PaymentItem(String bookId, int quantity, float priceAtPurchase) {
+        public PaymentItem(String bookId, int quantity, Double priceAtPurchase) {
             this.bookId = bookId;
             this.quantity = quantity;
             this.priceAtPurchase = priceAtPurchase;
