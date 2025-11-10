@@ -1,5 +1,7 @@
 const Book = require("../models/Book");
 const Category = require("../models/Category");
+const Branch = require("../models/Branch");
+const Inventory = require("../models/Inventory");
 const { removeAccents } = require("../utils/helpers");
 
 /**
@@ -259,6 +261,141 @@ const uploadBookCover = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Lấy các chi nhánh có sách cụ thể, sắp xếp theo khoảng cách
+ * @route   GET /api/books/:id/branches
+ * @access  Public
+ * @query   lat, lng (latitude và longitude của người dùng)
+ */
+const getBranchesWithBook = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { lat, lng, limit = 10 } = req.query;
+
+    // 1. Kiểm tra sách có tồn tại không
+    const book = await Book.findById(id);
+    if (!book) {
+      res.status(404);
+      throw new Error("Không tìm thấy sách");
+    }
+
+    // 2. Tìm các inventory có sách này và stock > 0
+    const inventories = await Inventory.find({
+      bookId: id,
+      stock: { $gt: 0 },
+    }).populate("branchId");
+
+    if (!inventories || inventories.length === 0) {
+      return res.json({
+        book: {
+          _id: book._id,
+          title: book.title,
+          author: book.author,
+          coverImage: book.coverImage,
+        },
+        branches: [],
+        message: "Hiện tại không có chi nhánh nào có sách này",
+      });
+    }
+
+    // 3. Lấy danh sách branches từ inventories
+    let branches = inventories
+      .map((inv) => ({
+        branch: inv.branchId,
+        quantity: inv.stock,
+      }))
+      .filter((item) => item.branch && item.branch.isActive);
+
+    // 4. Nếu có tọa độ người dùng, sắp xếp theo khoảng cách
+    if (lat && lng) {
+      const userLat = parseFloat(lat);
+      const userLng = parseFloat(lng);
+
+      if (!isNaN(userLat) && !isNaN(userLng)) {
+        // Tính khoảng cách cho mỗi branch
+        branches = branches.map((item) => {
+          const branchLng = item.branch.location.coordinates[0];
+          const branchLat = item.branch.location.coordinates[1];
+
+          // Công thức Haversine để tính khoảng cách (km)
+          const distance = calculateDistance(
+            userLat,
+            userLng,
+            branchLat,
+            branchLng
+          );
+
+          return {
+            ...item.branch.toObject(),
+            quantity: item.quantity,
+            distance: parseFloat(distance.toFixed(2)), // km, làm tròn 2 chữ số
+          };
+        });
+
+        // Sắp xếp theo khoảng cách tăng dần
+        branches.sort((a, b) => a.distance - b.distance);
+      }
+    } else {
+      // Nếu không có tọa độ, chỉ trả về danh sách branches
+      branches = branches.map((item) => ({
+        ...item.branch.toObject(),
+        quantity: item.quantity,
+      }));
+    }
+
+    // 5. Giới hạn số lượng kết quả
+    const limitNum = parseInt(limit) || 10;
+    branches = branches.slice(0, limitNum);
+
+    res.json({
+      book: {
+        _id: book._id,
+        title: book.title,
+        author: book.author,
+        coverImage: book.coverImage,
+        price: book.price,
+        discount: book.discount,
+      },
+      userLocation:
+        lat && lng ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null,
+      totalBranches: branches.length,
+      branches,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Helper function: Tính khoảng cách giữa 2 điểm theo công thức Haversine
+ * @param {number} lat1 - Latitude điểm 1
+ * @param {number} lng1 - Longitude điểm 1
+ * @param {number} lat2 - Latitude điểm 2
+ * @param {number} lng2 - Longitude điểm 2
+ * @returns {number} Khoảng cách tính theo km
+ */
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371; // Bán kính trái đất (km)
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+
+  return distance;
+}
+
+function toRad(degrees) {
+  return degrees * (Math.PI / 180);
+}
+
 module.exports = {
   getBestDeals,
   getTopBooks,
@@ -268,4 +405,5 @@ module.exports = {
   getBooksByCategory,
   getBookById,
   uploadBookCover,
+  getBranchesWithBook,
 };
