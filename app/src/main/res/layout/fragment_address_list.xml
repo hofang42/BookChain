@@ -20,6 +20,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/white"
             android:elevation="0dp"
+            app:navigationIcon="@drawable/ic_arrow_back"
             app:title="Addresses"
             app:titleCentered="true"
             app:titleTextAppearance="@style/TextAppearance.Account.Title" />
@@ -106,20 +107,5 @@
             app:iconTint="@color/white" />
 
     </LinearLayout>
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:minHeight="80dp"
-        android:background="@color/white"
-        app:itemIconSize="24dp"
-        app:itemIconTint="@color/bottom_nav_icon_color"
-        app:itemTextColor="@color/bottom_nav_text_color"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_menu"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
