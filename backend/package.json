@@ -7,7 +7,9 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "create-admin": "node scripts/createAdmin.js",
+    "create-admin:force": "node scripts/createAdmin.js --force"
   },
   "dependencies": {
     "@payos/node": "^2.0.3",
@@ -23,7 +25,8 @@
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^7.0.10",
-    "slugify": "^1.6.6"
+    "slugify": "^1.6.6",
+    "socket.io": "^4.7.2"
   },
   "devDependencies": {
     "eslint": "^9.39.1",

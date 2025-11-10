@@ -1,5 +1,6 @@
 package com.hofang.bookchainfe.ui.home;
 
+import android.content.Intent;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +32,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.android.material.textfield.TextInputLayout;
 import com.hofang.bookchainfe.R;
+import com.hofang.bookchainfe.ui.message.MessageActivity;
 // Import các lớp Network
 import com.hofang.bookchainfe.network.ApiConfig;
 import com.hofang.bookchainfe.network.BookApiService;
@@ -65,6 +67,7 @@ public class HomeFragment extends Fragment {
     private RecyclerView rvTopBooks, rvUpcomingBooks, rvLatestBooks;
     private View headerTopBooks, headerUpcomingBooks, headerLatestBooks;
     private ChipGroup chipGroupTopBooks;
+    private View btnHomeMessage;
 
     // Service để gọi API
     private BookApiService apiService;
@@ -121,6 +124,8 @@ public class HomeFragment extends Fragment {
         headerUpcomingBooks = view.findViewById(R.id.header_upcoming_books);
         headerLatestBooks = view.findViewById(R.id.header_latest_books);
         chipGroupTopBooks = view.findViewById(R.id.chip_group_top_books);
+        btnHomeMessage = view.findViewById(R.id.btn_home_message);
+    }
 
         // --- Thêm các view cho search ---
         tvHeaderTitle = view.findViewById(R.id.tv_header_title);
@@ -460,6 +465,11 @@ public class HomeFragment extends Fragment {
                 return true; // Báo rằng ta đã xử lý sự kiện
             }
             return false;
+        });
+
+        btnHomeMessage.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), MessageActivity.class);
+            startActivity(intent);
         });
     }
 

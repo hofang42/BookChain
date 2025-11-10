@@ -12,4 +12,5 @@
     
     <!-- Common UI -->
     <string name="back">Back</string>
+    <string name="home_message">Messages</string>
 </resources>

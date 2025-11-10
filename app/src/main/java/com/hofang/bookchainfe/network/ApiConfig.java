@@ -1,6 +1,7 @@
 package com.hofang.bookchainfe.network;
 
 import android.content.Context;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -14,30 +15,36 @@ public class ApiConfig {
     // Default: Android emulator -> host machine
     public static final String BASE_URL = "http://10.0.2.2:3000/";
 
-    // --- CÁC HẰNG SỐ BẠN CẦN (ĐÃ ĐƯỢC THÊM LẠI) ---
+    // --- CÁC HẰNG SỐ API ---
     public static final String USERS = BASE_URL + "api/users";
     public static final String BOOKS = BASE_URL + "api/books";
     public static final String BRANCHES = BASE_URL + "api/branches";
-    // ----------------------------------------------
+    // -----------------------
 
     private static Retrofit retrofit;
+    private static Context appContext;
 
     /**
      * Khởi tạo Retrofit với Context (để dùng được AuthInterceptor).
      * Hàm này PHẢI được gọi trong MainActivity.onCreate().
      */
     public static void init(Context context) {
+        appContext = context.getApplicationContext();
+
         if (retrofit == null) {
+            // --- Logging interceptor (hiển thị log request/response) ---
             HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-            // Auth Interceptor (tự động gắn token)
-            AuthInterceptor authInterceptor = new AuthInterceptor(context.getApplicationContext());
+            // --- Auth interceptor (tự động gắn token vào header) ---
+            OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
+                    .addInterceptor(loggingInterceptor);
 
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .addInterceptor(loggingInterceptor)
-                    .addInterceptor(authInterceptor)
-                    .build();
+            if (appContext != null) {
+                clientBuilder.addInterceptor(new AuthInterceptor(appContext));
+            }
+
+            OkHttpClient client = clientBuilder.build();
 
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
@@ -53,24 +60,30 @@ public class ApiConfig {
         }
     }
 
-    public static AuthApiService getAuthApiService() {
+    private static Retrofit getRetrofit() {
         checkInit();
-        return retrofit.create(AuthApiService.class);
+        return retrofit;
+    }
+
+    // --- Các Service ---
+    public static AuthApiService getAuthApiService() {
+        return getRetrofit().create(AuthApiService.class);
     }
 
     public static BookApiService getBookApiService() {
-        checkInit();
-        return retrofit.create(BookApiService.class);
+        return getRetrofit().create(BookApiService.class);
     }
 
     public static CartApiService getCartApiService() {
-        checkInit();
-        return retrofit.create(CartApiService.class);
+        return getRetrofit().create(CartApiService.class);
     }
 
     public static PaymentApiService getPaymentApiService() {
-        checkInit();
-        return retrofit.create(PaymentApiService.class);
+        return getRetrofit().create(PaymentApiService.class);
+    }
+
+    public static ChatApiService getChatApiService() {
+        return getRetrofit().create(ChatApiService.class);
     }
 
     public static AddressApiService getAddressApiService() {
