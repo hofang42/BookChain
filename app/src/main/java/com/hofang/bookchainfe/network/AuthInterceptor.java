@@ -2,6 +2,8 @@ package com.hofang.bookchainfe.network;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+
 import com.hofang.bookchainfe.utils.TokenManager;
 
 import java.io.IOException;
@@ -11,32 +13,31 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * Interceptor to add authentication token to API requests
+ * AuthInterceptor — tự động chặn mọi request API,
+ * lấy token từ TokenManager (nếu có) và gắn vào header "Authorization".
  */
 public class AuthInterceptor implements Interceptor {
-    private TokenManager tokenManager;
+    private final TokenManager tokenManager;
 
     public AuthInterceptor(Context context) {
         this.tokenManager = new TokenManager(context);
     }
 
+    @NonNull
     @Override
-    public Response intercept(Chain chain) throws IOException {
+    public Response intercept(@NonNull Chain chain) throws IOException {
         Request originalRequest = chain.request();
-        
-        // Get token from TokenManager
+
+        // Lấy token từ TokenManager
         String token = tokenManager.getToken();
-        
-        // If token exists, add it to the request header
+
+        // Nếu có token thì thêm vào header Authorization
+        Request.Builder requestBuilder = originalRequest.newBuilder();
         if (token != null && !token.isEmpty()) {
-            Request.Builder requestBuilder = originalRequest.newBuilder()
-                    .header("Authorization", "Bearer " + token);
-            
-            return chain.proceed(requestBuilder.build());
+            requestBuilder.header("Authorization", "Bearer " + token);
         }
-        
-        // If no token, proceed with original request
-        return chain.proceed(originalRequest);
+
+        Request newRequest = requestBuilder.build();
+        return chain.proceed(newRequest);
     }
 }
-

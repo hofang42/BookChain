@@ -38,6 +38,17 @@
 
     </com.google.android.material.appbar.MaterialToolbar>
 
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp" />
+
     <!-- Scrollable Content -->
     <ScrollView
         android:layout_width="0dp"
@@ -64,42 +75,106 @@
 
             <!-- Address Card -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_address"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="0dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
                 app:cardBackgroundColor="@color/black"
                 app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        android:id="@+id/tv_address"
-                        android:layout_width="0dp"
+                    <!-- Header with name and default badge -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="No.23, James Street,\nNew Town, North\nProvince"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tv_recipient_name"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Loading..."
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chip_default"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Default"
+                            android:textColor="@color/black"
+                            app:chipBackgroundColor="@color/white"
+                            app:chipMinHeight="24dp"
+                            style="@style/Widget.Material3.Chip.Assist" />
+
+                    </LinearLayout>
+
+                    <!-- Phone number -->
+                    <TextView
+                        android:id="@+id/tv_phone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Phone: "
+                        android:textColor="@color/white"
+                        android:textSize="14sp" />
+
+                    <!-- Full address -->
+                    <TextView
+                        android:id="@+id/tv_full_address"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text=""
                         android:textColor="@color/white"
                         android:textSize="14sp"
-                        android:lineSpacingExtra="4dp" />
+                        android:lineSpacingExtra="2dp" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_change_address"
+                    <!-- Postal code -->
+                    <TextView
+                        android:id="@+id/tv_postal_code"
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:text="Change"
-                        android:textSize="12sp"
-                        android:backgroundTint="@color/white"
-                        android:textColor="@color/black"
-                        app:cornerRadius="6dp"
-                        android:minWidth="0dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp" />
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Postal Code: "
+                        android:textColor="@color/white"
+                        android:textSize="12sp" />
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="12dp"
+                        android:background="#444444" />
+
+                    <!-- Change button -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        android:gravity="end">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_change_address"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Change"
+                            android:textSize="12sp"
+                            android:textColor="@color/white"
+                            style="@style/Widget.Material3.Button.TextButton" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -173,5 +248,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

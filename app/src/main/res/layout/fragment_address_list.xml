@@ -26,117 +26,86 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scrollView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingBottom="@dimen/account_bottom_nav_height"
+        android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <LinearLayout
+        <!-- Loading Progress -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="32dp"
+            android:visibility="gone" />
+
+        <!-- Error Message -->
+        <TextView
+            android:id="@+id/tv_error"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="@dimen/account_horizontal_padding"
-            android:paddingEnd="@dimen/account_horizontal_padding"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp">
+            android:layout_marginTop="32dp"
+            android:text="Failed to load addresses"
+            android:textAlignment="center"
+            android:textColor="?attr/colorError"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
-            <!-- Address List will be populated here -->
+        <!-- Empty State -->
+        <LinearLayout
+            android:id="@+id/layout_empty_state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="64dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Your Addresses"
+                android:text="No addresses yet"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:layout_marginBottom="12dp" />
+                android:textStyle="bold" />
 
-            <!-- Example Address Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/account_card_gray">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Home"
-                        android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="@color/black" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="No.23, James Street,\nNew Town, North\nProvince"
-                        android:textSize="14sp"
-                        android:textColor="@color/account_label_gray" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="12dp">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_edit_address"
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_weight="1"
-                            android:text="Edit"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            app:strokeColor="@color/accent_black"
-                            app:strokeWidth="1dp"
-                            android:textColor="@color/accent_black"
-                            app:cornerRadius="6dp"
-                            android:layout_marginEnd="6dp" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_delete_address"
-                            android:layout_width="0dp"
-                            android:layout_height="40dp"
-                            android:layout_weight="1"
-                            android:text="Delete"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            app:strokeColor="@android:color/holo_red_dark"
-                            app:strokeWidth="1dp"
-                            android:textColor="@android:color/holo_red_dark"
-                            app:cornerRadius="6dp"
-                            android:layout_marginStart="6dp" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Add New Address Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_add_new_address"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="16dp"
-                android:text="Add New Address"
-                android:backgroundTint="@color/accent_black"
-                android:textColor="@color/white"
-                app:cornerRadius="6dp"
-                app:icon="@android:drawable/ic_input_add"
-                app:iconTint="@color/white" />
+                android:text="Add your first address to get started"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp" />
 
         </LinearLayout>
 
-    </androidx.core.widget.NestedScrollView>
+        <!-- RecyclerView for addresses -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_addresses"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="80dp" />
+
+        <!-- Add New Address Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_add_new_address"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_margin="16dp"
+            android:text="Add New Address"
+            android:backgroundTint="@color/accent_black"
+            android:textColor="@color/white"
+            app:cornerRadius="6dp"
+            app:icon="@android:drawable/ic_input_add"
+            app:iconTint="@color/white" />
+
+    </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"

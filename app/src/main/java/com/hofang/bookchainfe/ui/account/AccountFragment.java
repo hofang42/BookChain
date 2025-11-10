@@ -62,15 +62,31 @@ public class AccountFragment extends Fragment {
         // Initialize token manager
         tokenManager = new TokenManager(requireContext());
 
+        // Show bottom navigation when on Account screen
+        if (getActivity() != null) {
+            View bottomNav = getActivity().findViewById(R.id.bottom_navigation);
+            if (bottomNav != null) {
+                bottomNav.setVisibility(View.VISIBLE);
+            }
+        }
+
         // Bind UI
         final TextView tvName = view.findViewById(R.id.value_name);
         final TextView tvEmail = view.findViewById(R.id.value_email);
         final TextView tvPassword = view.findViewById(R.id.value_password);
-        final TextView tvAddress = view.findViewById(R.id.value_address);
+        final TextView tvPhone = view.findViewById(R.id.value_phone);
         final ImageView avatar = view.findViewById(R.id.avatar);
 
-        // Display user info from stored session
-        displayUserInfo(tvName, tvEmail, tvPassword, tvAddress);
+        // Display user info from stored session (will refresh when coming back from edit)
+        displayUserInfo(tvName, tvEmail, tvPassword, tvPhone);
+
+        // Add Edit button functionality
+        Button btnEdit = view.findViewById(R.id.btn_edit);
+        if (btnEdit != null) {
+            btnEdit.setOnClickListener(v -> {
+                Navigation.findNavController(view).navigate(R.id.editProfileFragment);
+            });
+        }
 
         // Add logout button functionality
         Button btnLogout = view.findViewById(R.id.btn_logout);
@@ -78,21 +94,29 @@ public class AccountFragment extends Fragment {
             btnLogout.setOnClickListener(v -> performLogout());
         }
 
+        // Add Manage Addresses functionality
+        view.findViewById(R.id.card_manage_addresses).setOnClickListener(v -> {
+            Navigation.findNavController(view).navigate(R.id.addressListFragment);
+        });
+
         // Fetch profile from backend and populate UI (if needed for additional data)
-        // fetchProfileAndPopulate(tvName, tvEmail, tvPassword, tvAddress, avatar);
+        // fetchProfileAndPopulate(tvName, tvEmail, tvPassword, tvPhone, avatar);
     }
 
-    private void displayUserInfo(TextView tvName, TextView tvEmail, TextView tvPassword, TextView tvAddress) {
+    private void displayUserInfo(TextView tvName, TextView tvEmail, TextView tvPassword, TextView tvPhone) {
         if (tokenManager.isLoggedIn()) {
             tvName.setText(tokenManager.getFullName() != null ? tokenManager.getFullName() : tokenManager.getUsername());
             tvEmail.setText(tokenManager.getEmail());
             tvPassword.setText("********"); // Always mask password
-            tvAddress.setText("-"); // We don't store address in token
+
+            // Display phone number if available
+            String phone = tokenManager.getPhone();
+            tvPhone.setText(phone != null && !phone.isEmpty() ? phone : "-");
         } else {
             tvName.setText("Guest User");
             tvEmail.setText("-");
             tvPassword.setText("-");
-            tvAddress.setText("-");
+            tvPhone.setText("-");
         }
     }
 
