@@ -233,10 +233,25 @@ public class RegisterFragment extends Fragment {
                     ApiResponse<AuthResponse> apiResponse = response.body();
                     
                     if (apiResponse.isSuccess()) {
-                        Toast.makeText(getContext(), "Đăng ký thành công! Vui lòng kiểm tra email để nhận mã xác thực.", Toast.LENGTH_LONG).show();
+                        AuthResponse authResponse = apiResponse.getData();
                         
-                        // Send OTP automatically after successful registration
-                        sendVerificationOTP(email);
+                        // Check if requires verification (new flow) - check from ApiResponse top level
+                        if (apiResponse.isRequiresVerification()) {
+                            // Server already sent OTP, just navigate to OTP screen
+                            String responseEmail = null;
+                            if (authResponse != null && authResponse.getEmail() != null && !authResponse.getEmail().isEmpty()) {
+                                responseEmail = authResponse.getEmail();
+                            } else {
+                                // Fallback to original email
+                                responseEmail = email;
+                            }
+                            Toast.makeText(getContext(), "Mã xác thực đã được gửi đến email của bạn", Toast.LENGTH_SHORT).show();
+                            navigateToOTPVerification(responseEmail);
+                        } else {
+                            // Old flow - send OTP manually (should not happen with current backend)
+                            Toast.makeText(getContext(), "Đăng ký thành công! Vui lòng kiểm tra email để nhận mã xác thực.", Toast.LENGTH_LONG).show();
+                            sendVerificationOTP(email);
+                        }
                     } else {
                         // API returned error
                         String errorMessage = apiResponse.getError() != null ? apiResponse.getError() : "Đăng ký thất bại";
@@ -262,6 +277,14 @@ public class RegisterFragment extends Fragment {
         });
     }
 
+    private void navigateToOTPVerification(String email) {
+        Bundle bundle = new Bundle();
+        bundle.putString("email", email);
+        
+        NavController navController = Navigation.findNavController(requireView());
+        navController.navigate(R.id.action_register_to_otp, bundle);
+    }
+
     private void sendVerificationOTP(String email) {
         SendOTPRequest request = new SendOTPRequest(email);
         
@@ -274,11 +297,7 @@ public class RegisterFragment extends Fragment {
                     
                     if (apiResponse.isSuccess()) {
                         // Navigate to OTP verification screen
-                        Bundle bundle = new Bundle();
-                        bundle.putString("email", email);
-                        
-                        NavController navController = Navigation.findNavController(requireView());
-                        navController.navigate(R.id.action_register_to_otp, bundle);
+                        navigateToOTPVerification(email);
                     } else {
                         String errorMessage = apiResponse.getError() != null ? apiResponse.getError() : "Failed to send verification code";
                         Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();

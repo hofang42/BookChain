@@ -59,9 +59,30 @@ public class GoogleSignInHelper {
     }
     
     /**
-     * Start Google Sign-In flow
+     * Start Google Sign-In flow with account picker
      */
     public void signIn(ActivityResultLauncher<Intent> launcher) {
+        signInWithAccountPicker(launcher);
+    }
+    
+    /**
+     * Start Google Sign-In flow with account picker (always shows account selection)
+     * Note: Account picker is forced by signing out first, which ensures the user
+     * sees the account selection dialog even if they were previously signed in.
+     */
+    public void signInWithAccountPicker(ActivityResultLauncher<Intent> launcher) {
+        // Sign out first to ensure account picker is shown
+        googleSignInClient.signOut().addOnCompleteListener(task -> {
+            Log.d(TAG, "Signed out before sign in to show account picker");
+            Intent signInIntent = googleSignInClient.getSignInIntent();
+            launcher.launch(signInIntent);
+        });
+    }
+    
+    /**
+     * Start Google Sign-In flow without forcing account picker (silent if already signed in)
+     */
+    public void signInSilent(ActivityResultLauncher<Intent> launcher) {
         Intent signInIntent = googleSignInClient.getSignInIntent();
         launcher.launch(signInIntent);
     }

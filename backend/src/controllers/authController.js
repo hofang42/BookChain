@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const User = require("../models/User");
-const { sendEmailVerificationOTP, sendWelcomeEmail, sendPasswordResetEmail, sendPasswordResetOTP } = require("../services/emailService");
+const { sendEmailVerificationOTP, sendWelcomeEmail, /* sendPasswordResetEmail, */ sendPasswordResetOTP } = require("../services/emailService");
 const otpService = require("../services/otpService");
 
 /**
@@ -31,6 +31,7 @@ const register = async (req, res, next) => {
     });
 
     if (existingUser) {
+      // Handle email conflict (both pending and active)
       if (existingUser.email === email) {
         return res.status(400).json({
           success: false,
@@ -42,6 +43,8 @@ const register = async (req, res, next) => {
           }]
         });
       }
+      
+      // Handle username conflict
       if (existingUser.username === username) {
         return res.status(400).json({
           success: false,
@@ -66,26 +69,51 @@ const register = async (req, res, next) => {
 
     await user.save();
 
-    // Return user data (excluding sensitive fields) - no token yet, need email verification
-    const userData = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
-      phone: user.phone,
-      role: user.role,
-      status: user.status,
-      createdAt: user.createdAt
-    };
-
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully. Please verify your email to activate your account.",
-      data: {
-        user: userData,
-        requiresVerification: true
+    // Generate and send OTP for new user with rate limiting
+    const otpResult = otpService.generateEmailVerificationOTP(email);
+    
+    if (!otpResult.success) {
+      return res.status(429).json({
+        success: false,
+        error: otpResult.error,
+        remainingTime: otpResult.remainingTime
+      });
+    }
+    
+    try {
+      // Send verification email with timeout
+      const emailPromise = sendEmailVerificationOTP(user.email, otpResult.otp, user.fullName);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Email sending timeout')), 30000)
+      );
+      
+      const emailResult = await Promise.race([emailPromise, timeoutPromise]);
+      
+      // Check if email sending failed
+      if (emailResult && !emailResult.success) {
+        throw new Error(emailResult.message || 'Failed to send email');
       }
-    });
+      
+      res.status(201).json({
+        success: true,
+        requiresVerification: true,
+        message: "User registered successfully. Verification code sent to your email.",
+        data: {
+          email: user.email,
+          source: "register"
+        }
+      });
+    } catch (emailError) {
+      console.error(`Failed to send email to ${user.email}:`, emailError.message);
+      
+      // Clear OTP if email fails
+      otpService.clearOTP(email);
+
+      return res.status(500).json({
+        success: false,
+        error: "User registered but failed to send verification email. Please try again."
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -99,13 +127,12 @@ const login = async (req, res, next) => {
   try {
     const { login, password } = req.body;
 
-    // Find user by username or email
+    // Find user by username or email (including pending status)
     const user = await User.findOne({
       $or: [
         { email: login },
         { username: login }
-      ],
-      status: "active"
+      ]
     });
 
     if (!user) {
@@ -115,6 +142,83 @@ const login = async (req, res, next) => {
         details: [{
           field: "login",
           message: "Không tìm thấy tài khoản với thông tin này",
+          value: login
+        }]
+      });
+    }
+
+    // Handle pending account - send OTP and redirect to verification
+    if (user.status === "pending") {
+      // Verify password first for security
+      const isPasswordValid = await user.comparePassword(password);
+      
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          error: "Tên đăng nhập/email hoặc mật khẩu không đúng",
+          details: [{
+            field: "password",
+            message: "Mật khẩu không chính xác",
+            value: "***"
+          }]
+        });
+      }
+
+      // Generate and send OTP for pending account with rate limiting
+      const otpResult = otpService.generateEmailVerificationOTP(user.email);
+      
+      if (!otpResult.success) {
+        return res.status(429).json({
+          success: false,
+          error: otpResult.error,
+          remainingTime: otpResult.remainingTime
+        });
+      }
+      
+      try {
+        // Send verification email with timeout
+        const emailPromise = sendEmailVerificationOTP(user.email, otpResult.otp, user.fullName);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Email sending timeout')), 30000)
+        );
+        
+        const emailResult = await Promise.race([emailPromise, timeoutPromise]);
+        
+        // Check if email sending failed
+        if (emailResult && !emailResult.success) {
+          throw new Error(emailResult.message || 'Failed to send email');
+        }
+        
+        return res.json({
+          success: true,
+          message: "Tài khoản chưa được xác thực. Mã OTP đã được gửi đến email của bạn.",
+          data: {
+            email: user.email,
+            source: "login",
+            requiresVerification: true
+          }
+        });
+      } catch (emailError) {
+        console.error(`Failed to send email to ${user.email}:`, emailError.message);
+        
+        // Clear OTP if email fails
+        otpService.clearOTP(user.email);
+
+        return res.status(500).json({
+          success: false,
+          error: "Failed to send verification email. Please try again."
+        });
+      }
+    }
+
+    // Handle banned account
+    if (user.status === "banned") {
+      return res.status(401).json({
+        success: false,
+        error: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ hỗ trợ.",
+        details: [{
+          field: "login",
+          message: "Tài khoản bị khóa",
           value: login
         }]
       });
@@ -228,14 +332,20 @@ const sendVerificationOTP = async (req, res, next) => {
       });
     }
 
-    // Generate OTP
-    const otp = otpService.generateEmailVerificationOTP(email);
+    // Generate OTP with rate limiting
+    const otpResult = otpService.generateEmailVerificationOTP(email);
+
+    if (!otpResult.success) {
+      return res.status(429).json({
+        success: false,
+        error: otpResult.error,
+        remainingTime: otpResult.remainingTime
+      });
+    }
 
     try {
       // Send verification email with timeout
-      
-      // Add timeout to email sending (30 seconds)
-      const emailPromise = sendEmailVerificationOTP(user.email, otp, user.fullName);
+      const emailPromise = sendEmailVerificationOTP(user.email, otpResult.otp, user.fullName);
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Email sending timeout')), 30000)
       );
@@ -339,9 +449,13 @@ const verifyEmail = async (req, res, next) => {
 };
 
 /**
- * Forgot password - send reset email
+ * DEPRECATED: Forgot password - send reset email (token-based)
  * POST /api/auth/forgot-password
+ * 
+ * Hàm này không còn được sử dụng. Hệ thống hiện tại sử dụng OTP-based reset thay vì token-based.
+ * Giữ lại để tham khảo trong tương lai nếu cần.
  */
+/*
 const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -388,6 +502,7 @@ const forgotPassword = async (req, res, next) => {
     next(error);
   }
 };
+*/
 
 /**
  * Send password reset OTP
@@ -697,6 +812,16 @@ const googleSignIn = async (req, res, next) => {
     } else {
       // Update last login for existing user
       user.lastLogin = new Date();
+      
+      // If user was pending, activate account since Google has verified the email
+      if (user.status === 'pending') {
+        user.status = 'active';
+        // Optionally update fullName if provided and different
+        if (name && name !== 'Google User' && name !== user.fullName) {
+          user.fullName = name;
+        }
+      }
+      
       await user.save();
     }
 
@@ -734,7 +859,7 @@ module.exports = {
   getMe,
   sendVerificationOTP,
   verifyEmail,
-  forgotPassword,
+  // forgotPassword, // DEPRECATED: Không còn sử dụng, đã chuyển sang OTP-based reset
   sendPasswordResetOTPController,
   verifyPasswordResetOTP,
   resetPassword,

@@ -2,6 +2,7 @@ package com.hofang.bookchainfe.ui.home;
 
 import android.content.Context;
 import android.graphics.Paint;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.network.ApiConfig; // Import ApiConfig
 
 import java.text.NumberFormat;
+import com.hofang.bookchainfe.ui.bookdetail.BookDetailActivity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -131,6 +133,8 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
         }
         // --- Hết xử lý ảnh ---
+        // Set click listener for the entire item
+        holder.itemView.setOnClickListener(v -> openBookDetail(book));
 
         if (holder.getItemViewType() == VIEW_TYPE_CARD) {
             CardViewHolder cardHolder = (CardViewHolder) holder;
@@ -166,6 +170,44 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 dealHolder.tvBookDiscount.setVisibility(View.GONE);
             }
         }
+    }
+
+    private void openBookDetail(BookItem book) {
+        Intent intent = new Intent(context, BookDetailActivity.class);
+        
+        // Pass book data to detail activity
+        intent.putExtra("title", book.getTitle());
+        intent.putExtra("author", book.getAuthor());
+        intent.putExtra("category", book.getCategory());
+        intent.putExtra("coverResId", book.getCoverImageResId());
+        
+        // Parse price
+        if (book.getPrice() != null && !book.getPrice().isEmpty()) {
+            String priceStr = book.getPrice().replace("$", "").trim();
+            try {
+                double price = Double.parseDouble(priceStr);
+                intent.putExtra("price", price);
+            } catch (NumberFormatException e) {
+                intent.putExtra("price", 0.0);
+            }
+        }
+        
+        // Parse discount
+        if (book.getDiscount() != null && !book.getDiscount().isEmpty()) {
+            String discountStr = book.getDiscount().replace("% off", "").replace("%", "").trim();
+            try {
+                int discount = Integer.parseInt(discountStr);
+                intent.putExtra("discount", discount);
+            } catch (NumberFormatException e) {
+                intent.putExtra("discount", 0);
+            }
+        }
+        
+        // Default description
+        intent.putExtra("description", "This is a great book. More details coming soon.");
+        intent.putExtra("rating", 4.11);
+        
+        context.startActivity(intent);
     }
 
     @Override

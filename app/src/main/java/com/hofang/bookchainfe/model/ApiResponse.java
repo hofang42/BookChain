@@ -17,6 +17,9 @@ public class ApiResponse<T> {
     
     @SerializedName("details")
     private Object details;
+    
+    @SerializedName("requiresVerification")
+    private boolean requiresVerification;
 
     // Constructors
     public ApiResponse() {}
@@ -66,5 +69,13 @@ public class ApiResponse<T> {
 
     public void setDetails(Object details) {
         this.details = details;
+    }
+    
+    public boolean isRequiresVerification() {
+        return requiresVerification;
+    }
+    
+    public void setRequiresVerification(boolean requiresVerification) {
+        this.requiresVerification = requiresVerification;
     }
 }

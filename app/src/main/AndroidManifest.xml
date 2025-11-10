@@ -16,6 +16,8 @@
         android:theme="@style/Theme.BookChainFE">
 
         <!-- MAIN ACTIVITY: Giờ đây sẽ đảm nhận cả 2 vai trò -->
+        
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -38,6 +40,26 @@
                     android:pathPrefix="/result" />
             </intent-filter>
         </activity>
+        
+        <!-- Book Detail Activity -->
+        <activity
+            android:name=".ui.bookdetail.BookDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+        
+        <!-- Cart Activity -->
+        <activity
+            android:name=".ui.cart.CartActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+        
+        <!-- Checkout Activity -->
+        <activity
+            android:name=".ui.checkout.CheckoutActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.cart.CartActivity" />
+            
+    </application>
 
         <!-- Đã xóa PaymentHandlerActivity vì không còn cần thiết -->
 
