@@ -125,7 +125,6 @@ public class HomeFragment extends Fragment {
         headerLatestBooks = view.findViewById(R.id.header_latest_books);
         chipGroupTopBooks = view.findViewById(R.id.chip_group_top_books);
         btnHomeMessage = view.findViewById(R.id.btn_home_message);
-    }
 
         // --- Thêm các view cho search ---
         tvHeaderTitle = view.findViewById(R.id.tv_header_title);

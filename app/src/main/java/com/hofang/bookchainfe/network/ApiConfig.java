@@ -60,11 +60,6 @@ public class ApiConfig {
         }
     }
 
-    private static Retrofit getRetrofit() {
-        checkInit();
-        return retrofit;
-    }
-
     // --- Các Service ---
     public static AuthApiService getAuthApiService() {
         return getRetrofit().create(AuthApiService.class);
