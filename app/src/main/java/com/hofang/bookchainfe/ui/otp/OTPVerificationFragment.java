@@ -271,7 +271,8 @@ public class OTPVerificationFragment extends Fragment {
                             authResponse.getUser().getId(),
                             authResponse.getUser().getUsername(),
                             authResponse.getUser().getEmail(),
-                            authResponse.getUser().getFullName()
+                            authResponse.getUser().getFullName(),
+                            authResponse.getUser().getPhone()
                         );
 
                         Toast.makeText(getContext(), "Xác thực email thành công! Chào mừng bạn!", Toast.LENGTH_SHORT).show();

@@ -209,6 +209,13 @@ public class AddressListFragment extends Fragment implements AddressAdapter.OnAd
             return;
         }
 
+        // Validate address ID
+        if (address == null || address.getId() == null || address.getId().isEmpty()) {
+            Toast.makeText(requireContext(), "Invalid address ID", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Address or address ID is null");
+            return;
+        }
+
         String authHeader = "Bearer " + token;
         addressApiService.setDefaultAddress(authHeader, address.getId()).enqueue(new Callback<ApiResponse<AddressApiService.AddressResponse>>() {
             @Override

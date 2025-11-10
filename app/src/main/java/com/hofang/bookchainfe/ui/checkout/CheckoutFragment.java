@@ -1,5 +1,7 @@
 package com.hofang.bookchainfe.ui.checkout;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,10 +23,16 @@ import com.google.android.material.card.MaterialCardView;
 import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.model.Address;
 import com.hofang.bookchainfe.model.ApiResponse;
+import com.hofang.bookchainfe.model.CartItem;
+import com.hofang.bookchainfe.model.CreatePaymentRequest;
+import com.hofang.bookchainfe.model.CreatePaymentResponse;
 import com.hofang.bookchainfe.network.AddressApiService;
 import com.hofang.bookchainfe.network.ApiConfig;
 import com.hofang.bookchainfe.ui.address.AddAddressBottomSheet;
 import com.hofang.bookchainfe.utils.TokenManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -50,6 +58,8 @@ public class CheckoutFragment extends Fragment {
 
     // Data
     private Address defaultAddress;
+    private List<CartItem> cartItems = new ArrayList<>();
+    private float totalPrice = 0f;
 
     public CheckoutFragment() {
         // Required empty public constructor
@@ -122,9 +132,7 @@ public class CheckoutFragment extends Fragment {
                     Toast.makeText(requireContext(), "Please select a delivery address", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                // Navigate to Payment Success
-                NavController navController = Navigation.findNavController(v);
-                navController.navigate(R.id.action_checkout_to_payment_success);
+                handleOnlinePayment();
             });
         }
 
@@ -250,5 +258,69 @@ public class CheckoutFragment extends Fragment {
         if (progressBar != null) {
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         }
+    }
+
+    private void handleOnlinePayment() {
+        // Build full address string
+        String address = tvFullAddress.getText().toString();
+
+        if (cartItems.isEmpty()) {
+            Toast.makeText(getContext(), "Giỏ hàng rỗng!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        showLoading(true);
+
+        // --- 1. CHUẨN BỊ DỮ LIỆU REQUEST ---
+        List<CreatePaymentRequest.PaymentItem> paymentItems = new ArrayList<>();
+        for (CartItem item : cartItems) {
+            String bookId = item.getBook().getId();
+            float price = (float) item.getBook().getFinalPrice();
+
+            paymentItems.add(new CreatePaymentRequest.PaymentItem(
+                    bookId,
+                    item.getQuantity(),
+                    price
+            ));
+        }
+
+        CreatePaymentRequest request = new CreatePaymentRequest(paymentItems, totalPrice, address);
+
+        // --- 2. GỌI API ---
+        ApiConfig.getPaymentApiService().createPaymentLink(request).enqueue(new Callback<CreatePaymentResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<CreatePaymentResponse> call, @NonNull Response<CreatePaymentResponse> response) {
+                showLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    String checkoutUrl = response.body().getCheckoutUrl();
+                    if (checkoutUrl != null && !checkoutUrl.isEmpty()) {
+                        // Mở trình duyệt để thanh toán
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(checkoutUrl));
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(getContext(), "Lỗi: Không có link thanh toán", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    // Log lỗi từ server (ví dụ: 400 Bad Request do sai ID sách)
+                    Log.e(TAG, "API Error Code: " + response.code());
+                    try {
+                        if (response.errorBody() != null) {
+                            Log.e(TAG, "API Error Body: " + response.errorBody().string());
+                        }
+                    } catch (Exception e) { 
+                        e.printStackTrace(); 
+                    }
+
+                    Toast.makeText(getContext(), "Tạo đơn thất bại. Vui lòng thử lại.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<CreatePaymentResponse> call, @NonNull Throwable t) {
+                showLoading(false);
+                Toast.makeText(getContext(), "Lỗi kết nối mạng", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Network failure", t);
+            }
+        });
     }
 }

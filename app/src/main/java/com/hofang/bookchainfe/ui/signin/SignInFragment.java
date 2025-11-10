@@ -220,7 +220,8 @@ public class SignInFragment extends Fragment implements GoogleSignInHelper.Googl
                                 authResponse.getUser().getId(),
                                 authResponse.getUser().getUsername(),
                                 authResponse.getUser().getEmail(),
-                                authResponse.getUser().getFullName()
+                                authResponse.getUser().getFullName(),
+                                authResponse.getUser().getPhone()
                             );
 
                             // Navigate immediately with strong, visible animation
@@ -325,7 +326,8 @@ public class SignInFragment extends Fragment implements GoogleSignInHelper.Googl
                             authResponse.getUser().getId(),
                             authResponse.getUser().getUsername(),
                             authResponse.getUser().getEmail(),
-                            authResponse.getUser().getFullName()
+                            authResponse.getUser().getFullName(),
+                            authResponse.getUser().getPhone()
                         );
                         
                         // Show success message briefly
