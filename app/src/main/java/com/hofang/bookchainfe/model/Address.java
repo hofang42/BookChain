@@ -1,6 +1,8 @@
 package com.hofang.bookchainfe.model;
 
-public class Address {
+import java.io.Serializable;
+
+public class Address implements Serializable {
     private String id;
     private String userId;
     private String recipientName;

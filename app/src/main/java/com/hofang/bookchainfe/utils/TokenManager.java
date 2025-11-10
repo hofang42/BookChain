@@ -10,6 +10,7 @@ public class TokenManager {
     private static final String KEY_USERNAME = "username";
     private static final String KEY_EMAIL = "email";
     private static final String KEY_FULL_NAME = "full_name";
+    private static final String KEY_PHONE = "phone";
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
 
     private SharedPreferences sharedPreferences;
@@ -21,12 +22,13 @@ public class TokenManager {
     }
 
     // Save user session
-    public void saveUserSession(String token, String userId, String username, String email, String fullName) {
+    public void saveUserSession(String token, String userId, String username, String email, String fullName, String phone) {
         editor.putString(KEY_TOKEN, token);
         editor.putString(KEY_USER_ID, userId);
         editor.putString(KEY_USERNAME, username);
         editor.putString(KEY_EMAIL, email);
         editor.putString(KEY_FULL_NAME, fullName);
+        editor.putString(KEY_PHONE, phone);
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
         editor.apply();
     }
@@ -51,6 +53,17 @@ public class TokenManager {
 
     public String getFullName() {
         return sharedPreferences.getString(KEY_FULL_NAME, null);
+    }
+
+    public String getPhone() {
+        return sharedPreferences.getString(KEY_PHONE, null);
+    }
+
+    // Update profile info (for edit profile)
+    public void updateProfile(String fullName, String phone) {
+        editor.putString(KEY_FULL_NAME, fullName);
+        editor.putString(KEY_PHONE, phone);
+        editor.apply();
     }
 
     // Check if user is logged in
