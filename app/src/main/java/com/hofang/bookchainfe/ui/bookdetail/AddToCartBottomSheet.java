@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast; // <-- THÊM IMPORT
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,6 +20,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.model.Book;
 
+import java.io.Serializable; // <-- THÊM IMPORT
+import java.text.NumberFormat; // <-- THÊM IMPORT
 import java.util.Locale;
 
 public class AddToCartBottomSheet extends BottomSheetDialogFragment {
@@ -32,21 +35,42 @@ public class AddToCartBottomSheet extends BottomSheetDialogFragment {
     private TextView tvQuantity;
     private TextView btnIncreaseQty;
     private Button btnAddToCart;
+    private TextView tvBranchName; // <-- THÊM VIEW NÀY
 
     private Book book;
     private int quantity = 1;
-    private int maxStock = 999;
+    private int maxStock; // Sẽ nhận từ newInstance
+    private String branchName; // Sẽ nhận từ newInstance
     private AddToCartListener listener;
+    private NumberFormat currencyFormatter; // Để format tiền VN
 
     public interface AddToCartListener {
         void onAddToCart(Book book, int quantity);
     }
 
-    public static AddToCartBottomSheet newInstance(Book book, AddToCartListener listener) {
+    // --- THAY ĐỔI: Nhận thêm stock và branchName ---
+    public static AddToCartBottomSheet newInstance(Book book, int stock, String branchName, AddToCartListener listener) {
         AddToCartBottomSheet fragment = new AddToCartBottomSheet();
-        fragment.book = book;
+        Bundle args = new Bundle();
+        args.putSerializable("book", (Serializable) book); // Cast book cho an toàn
+        args.putInt("stock", stock);
+        args.putString("branchName", branchName);
+        fragment.setArguments(args);
         fragment.listener = listener;
         return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            book = (Book) getArguments().getSerializable("book");
+            maxStock = getArguments().getInt("stock");
+            branchName = getArguments().getString("branchName");
+        }
+        // Khởi tạo định dạng tiền VN
+        Locale localeVN = new Locale("vi", "VN");
+        currencyFormatter = NumberFormat.getCurrencyInstance(localeVN);
     }
 
     @Nullable
@@ -62,8 +86,7 @@ public class AddToCartBottomSheet extends BottomSheetDialogFragment {
         initViews(view);
         setupData();
         setupListeners();
-        
-        // Expand bottom sheet fully to show button
+
         view.post(() -> {
             android.view.ViewGroup.LayoutParams params = view.getLayoutParams();
             if (params != null) {
@@ -76,8 +99,7 @@ public class AddToCartBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onStart() {
         super.onStart();
-        
-        // Expand bottom sheet to show all content including button
+
         if (getDialog() != null && getDialog() instanceof BottomSheetDialog) {
             BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
             View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
@@ -100,18 +122,20 @@ public class AddToCartBottomSheet extends BottomSheetDialogFragment {
         tvQuantity = view.findViewById(R.id.tv_quantity);
         btnIncreaseQty = view.findViewById(R.id.btn_increase_qty);
         btnAddToCart = view.findViewById(R.id.btn_add_to_cart);
+
+        // --- THÊM MỚI: Ánh xạ TextView cho tên chi nhánh ---
+        // (Bạn cần thêm TextView này vào file bottom_sheet_add_to_cart.xml)
+        tvBranchName = view.findViewById(R.id.tv_branch_name);
     }
 
     private void setupData() {
         if (book == null) {
-            // Set default placeholder if book is null
             ivBookImage.setImageResource(R.drawable.ic_book_placeholder);
-            tvDiscountedPrice.setText("$0.00");
+            tvDiscountedPrice.setText(currencyFormatter.format(0));
             tvStock.setText("Kho: 0");
             return;
         }
 
-        // Load book image
         if (book.getCoverImage() != null && !book.getCoverImage().isEmpty()) {
             Glide.with(requireContext())
                     .load(book.getCoverImage())
@@ -119,32 +143,35 @@ public class AddToCartBottomSheet extends BottomSheetDialogFragment {
                     .error(R.drawable.ic_book_placeholder)
                     .into(ivBookImage);
         } else {
-            // Set placeholder if no cover image
             ivBookImage.setImageResource(R.drawable.ic_book_placeholder);
         }
 
-        // Set prices
-        double finalPrice = book.getFinalPrice() != null ? book.getFinalPrice() : 
-                           (book.getPrice() != null ? book.getPrice() : 0.0);
-        tvDiscountedPrice.setText(String.format(Locale.US, "$%.2f", finalPrice));
+        // --- THAY ĐỔI: Dùng currencyFormatter ---
+        double finalPrice = book.getFinalPrice() != null ? book.getFinalPrice() :
+                (book.getPrice() != null ? book.getPrice() : 0.0);
+        tvDiscountedPrice.setText(currencyFormatter.format(finalPrice));
 
         if (book.getDiscount() != null && book.getDiscount() > 0 && book.getPrice() != null) {
             tvOriginalPrice.setVisibility(View.VISIBLE);
-            tvOriginalPrice.setText(String.format(Locale.US, "$%.2f", book.getPrice()));
-            // Add strikethrough
+            tvOriginalPrice.setText(currencyFormatter.format(book.getPrice()));
             tvOriginalPrice.setPaintFlags(tvOriginalPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
         } else {
             tvOriginalPrice.setVisibility(View.GONE);
         }
+        // --- KẾT THÚC THAY ĐỔI ---
 
-        // Set stock (mock data - TODO: get from backend)
-        maxStock = 100; // Default stock
+        // --- THAY ĐỔI: Sử dụng stock và branchName thật ---
         tvStock.setText(String.format(Locale.US, "Kho: %d", maxStock));
 
-        // Hide variant section for books (books typically don't have variants)
-        llVariantSection.setVisibility(View.GONE);
+        if (tvBranchName != null && branchName != null) {
+            tvBranchName.setText("Tại chi nhánh: " + branchName);
+            tvBranchName.setVisibility(View.VISIBLE);
+        } else if (tvBranchName != null) {
+            tvBranchName.setVisibility(View.GONE);
+        }
+        // --- KẾT THÚC THAY ĐỔI ---
 
-        // Set initial quantity
+        llVariantSection.setVisibility(View.GONE);
         updateQuantityDisplay();
     }
 
@@ -159,13 +186,28 @@ public class AddToCartBottomSheet extends BottomSheetDialogFragment {
         });
 
         btnIncreaseQty.setOnClickListener(v -> {
+            // --- THAY ĐỔI: Kiểm tra tồn kho thật ---
             if (quantity < maxStock) {
                 quantity++;
                 updateQuantityDisplay();
+            } else {
+                Toast.makeText(getContext(), "Đã đạt số lượng tồn kho tối đa", Toast.LENGTH_SHORT).show();
             }
+            // --- KẾT THÚC THAY ĐỔI ---
         });
 
         btnAddToCart.setOnClickListener(v -> {
+            // --- THAY ĐỔI: Kiểm tra tồn kho trước khi thêm ---
+            if (maxStock <= 0) {
+                Toast.makeText(getContext(), "Sản phẩm đã hết hàng tại chi nhánh này", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (quantity > maxStock) {
+                Toast.makeText(getContext(), "Số lượng vượt quá tồn kho", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // --- KẾT THÚC THAY ĐỔI ---
+
             if (listener != null) {
                 listener.onAddToCart(book, quantity);
             }
@@ -175,11 +217,10 @@ public class AddToCartBottomSheet extends BottomSheetDialogFragment {
 
     private void updateQuantityDisplay() {
         tvQuantity.setText(String.valueOf(quantity));
-        
-        // Disable/enable buttons based on quantity
+
         btnDecreaseQty.setEnabled(quantity > 1);
         btnDecreaseQty.setAlpha(quantity > 1 ? 1.0f : 0.3f);
-        
+
         btnIncreaseQty.setEnabled(quantity < maxStock);
         btnIncreaseQty.setAlpha(quantity < maxStock ? 1.0f : 0.3f);
     }

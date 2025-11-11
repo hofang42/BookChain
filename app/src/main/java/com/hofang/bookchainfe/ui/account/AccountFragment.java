@@ -34,6 +34,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import com.google.android.material.card.MaterialCardView;
 
 public class AccountFragment extends Fragment {
 
@@ -97,6 +98,18 @@ public class AccountFragment extends Fragment {
         // Add Manage Addresses functionality
         view.findViewById(R.id.card_manage_addresses).setOnClickListener(v -> {
             Navigation.findNavController(view).navigate(R.id.addressListFragment);
+        });
+
+        MaterialCardView cardOrderHistory = view.findViewById(R.id.card_order_history);
+        cardOrderHistory.setOnClickListener(v -> {
+            // Chúng ta sẽ tạo một action tên là 'action_accountFragment_to_orderHistoryFragment'
+            // trong nav_graph.xml
+            try {
+                Navigation.findNavController(view).navigate(R.id.action_accountFragment_to_orderHistoryFragment);
+            } catch (Exception e) {
+                Log.e("AccountFragment", "Navigation to OrderHistory failed. Did you add it to nav_graph?", e);
+                Toast.makeText(getContext(), "Feature coming soon!", Toast.LENGTH_SHORT).show();
+            }
         });
 
         // Fetch profile from backend and populate UI (if needed for additional data)

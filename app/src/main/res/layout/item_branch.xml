@@ -13,7 +13,6 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Branch Name and Distance -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -24,8 +23,8 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_location"
-                android:tint="#1976D2"
-                android:contentDescription="Location" />
+                android:contentDescription="Location"
+                app:tint="#1976D2" />
 
             <TextView
                 android:id="@+id/tv_branch_name"
@@ -49,7 +48,6 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <!-- Address -->
         <TextView
             android:id="@+id/tv_address"
             android:layout_width="match_parent"
@@ -60,7 +58,6 @@
             android:textColor="#666666"
             android:textSize="14sp" />
 
-        <!-- Stock and Hours -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -68,21 +65,18 @@
             android:layout_marginStart="32dp"
             android:orientation="horizontal">
 
-            <!-- Stock -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
-
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="16dp"
                     android:src="@drawable/ic_book"
-                    android:tint="#4CAF50"
-                    android:contentDescription="Stock" />
-
+                    android:contentDescription="Stock"
+                    app:tint="#4CAF50" />
                 <TextView
                     android:id="@+id/tv_stock"
                     android:layout_width="wrap_content"
@@ -94,7 +88,6 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Phone -->
             <LinearLayout
                 android:id="@+id/layout_phone"
                 android:layout_width="wrap_content"
@@ -106,14 +99,12 @@
                 android:background="?attr/selectableItemBackground"
                 android:padding="4dp"
                 android:visibility="gone">
-
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="16dp"
                     android:src="@drawable/ic_phone"
-                    android:tint="#FF9800"
-                    android:contentDescription="Phone" />
-
+                    android:contentDescription="Phone"
+                    app:tint="#FF9800" />
                 <TextView
                     android:id="@+id/tv_phone"
                     android:layout_width="wrap_content"
@@ -126,7 +117,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Opening Hours -->
         <TextView
             android:id="@+id/tv_opening_hours"
             android:layout_width="match_parent"
@@ -138,7 +128,6 @@
             android:textSize="12sp"
             android:visibility="gone" />
 
-        <!-- View on Map Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_view_on_map"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
@@ -151,6 +140,15 @@
             app:icon="@drawable/ic_map"
             app:iconTint="#1976D2" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_select_branch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Select this Branch"
+            android:backgroundTint="@color/black"
+            android:textColor="@color/white"
+            app:cornerRadius="6dp" />
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.hofang.bookchainfe.R;
-import com.hofang.bookchainfe.network.ApiConfig; // Import ApiConfig
+// import com.hofang.bookchainfe.network.ApiConfig; // <-- Không cần import này nữa
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -29,15 +29,12 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Context context;
     private ArrayList<BookItem> bookList;
     private int viewType;
-
-    // Dùng để định dạng tiền tệ (vd: 350.000 ₫)
     private NumberFormat currencyFormatter;
 
     public BookAdapter(Context context, ArrayList<BookItem> bookList, int viewType) {
         this.context = context;
         this.bookList = bookList;
         this.viewType = viewType;
-        // Khởi tạo formatter cho Tiếng Việt
         this.currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
     }
 
@@ -46,7 +43,7 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return this.viewType;
     }
 
-    // ViewHolder cho item_book_card.xml
+    // (ViewHolder cho CardViewHolder giữ nguyên)
     public static class CardViewHolder extends RecyclerView.ViewHolder {
         ImageView ivBookCover;
         TextView tvBookCategory, tvBookTitle, tvBookAuthor, tvBookPrice;
@@ -61,7 +58,7 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    // ViewHolder cho item_book_deal.xml
+    // (ViewHolder cho DealViewHolder giữ nguyên)
     public static class DealViewHolder extends RecyclerView.ViewHolder {
         ImageView ivBookCover;
         TextView tvBookCategory, tvBookTitle, tvBookAuthor, tvBookPrice, tvBookDiscount;
@@ -86,8 +83,6 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return new CardViewHolder(view);
         } else { // (viewType == VIEW_TYPE_DEAL)
             view = LayoutInflater.from(context).inflate(R.layout.home_item_book_deal, parent, false);
-
-            // Thêm: Tự động gạch ngang giá cho item deal
             TextView priceTextView = view.findViewById(R.id.tv_book_price);
             if (priceTextView != null) {
                 priceTextView.setPaintFlags(priceTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
@@ -100,28 +95,30 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         BookItem book = bookList.get(position);
 
-        // Lấy thông tin cơ bản
         String title = book.getTitle();
         String author = book.getAuthor();
         String category = (book.getCategory() != null) ? book.getCategory().getName() : "N/A";
         double price = book.getPrice();
 
-        // --- Xử lý tải ảnh ---
-        // Kiểm tra xem đây là data hard-code (Upcoming) hay data API
+        // --- BẮT ĐẦU SỬA LỖI ---
         if (book.getCoverImage() != null && !book.getCoverImage().isEmpty()) {
             // Data từ API: Dùng Glide để tải URL
 
-            // Xử lý BASE_URL để tránh lỗi double slash "//"
-            String baseUrl = ApiConfig.BASE_URL;
-            if (baseUrl.endsWith("/")) {
-                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
-            }
-            String imageUrl = baseUrl + book.getCoverImage();
+            // Xóa bỏ logic nối 'baseUrl'
+            String imageUrl = book.getCoverImage(); // <-- SỬA LẠI: Dùng trực tiếp URL
 
             if (holder.getItemViewType() == VIEW_TYPE_CARD) {
-                Glide.with(context).load(imageUrl).placeholder(R.drawable.discount_badge_bg).into(((CardViewHolder) holder).ivBookCover);
+                Glide.with(context)
+                        .load(imageUrl)
+                        .placeholder(R.drawable.ic_book_placeholder) // Đổi placeholder
+                        .error(R.drawable.ic_book_placeholder) // Thêm error
+                        .into(((CardViewHolder) holder).ivBookCover);
             } else {
-                Glide.with(context).load(imageUrl).placeholder(R.drawable.discount_badge_bg).into(((DealViewHolder) holder).ivBookCover);
+                Glide.with(context)
+                        .load(imageUrl)
+                        .placeholder(R.drawable.ic_book_placeholder) // Đổi placeholder
+                        .error(R.drawable.ic_book_placeholder) // Thêm error
+                        .into(((DealViewHolder) holder).ivBookCover);
             }
         } else if (book.getCoverImageResId() != 0) {
             // Data hard-code (Upcoming): Dùng ResId
@@ -132,37 +129,31 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 ((DealViewHolder) holder).ivBookCover.setImageResource(imageResId);
             }
         }
-        // --- Hết xử lý ảnh ---
-        // Set click listener for the entire item
+        // --- KẾT THÚC SỬA LỖI ---
+
         holder.itemView.setOnClickListener(v -> openBookDetail(book, v));
 
         if (holder.getItemViewType() == VIEW_TYPE_CARD) {
+            // (Logic bind cho CardViewHolder giữ nguyên)
             CardViewHolder cardHolder = (CardViewHolder) holder;
             cardHolder.tvBookCategory.setText(category);
             cardHolder.tvBookTitle.setText(title);
             cardHolder.tvBookAuthor.setText(author);
-
-            // Định dạng giá tiền
             if (price > 0) {
                 cardHolder.tvBookPrice.setText(currencyFormatter.format(price));
                 cardHolder.tvBookPrice.setVisibility(View.VISIBLE);
             } else {
                 cardHolder.tvBookPrice.setVisibility(View.GONE);
             }
-
         } else {
+            // (Logic bind cho DealViewHolder giữ nguyên)
             DealViewHolder dealHolder = (DealViewHolder) holder;
             dealHolder.tvBookCategory.setText(category);
             dealHolder.tvBookTitle.setText(title);
             dealHolder.tvBookAuthor.setText(author);
-
-            // Hiển thị giá gốc (bị gạch)
             dealHolder.tvBookPrice.setText(currencyFormatter.format(price));
-
-            // Tính toán và hiển thị % giảm giá
             double discountPercent = book.getDiscount();
             if (discountPercent > 0) {
-                // Làm tròn và hiển thị (vd: 10% off)
                 String discountText = String.format(Locale.US, "%.0f%% off", discountPercent);
                 dealHolder.tvBookDiscount.setText(discountText);
                 dealHolder.tvBookDiscount.setVisibility(View.VISIBLE);
@@ -172,32 +163,28 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    // Method that accepts View for Navigation
+    // (Hàm openBookDetail giữ nguyên)
     private void openBookDetail(BookItem book, View view) {
         Bundle args = new Bundle();
-        
-        // Pass book data to detail fragment
         args.putString("bookId", book.getId());
         args.putString("title", book.getTitle());
         args.putString("author", book.getAuthor());
-
-        // Truyền tên category (String)
         String categoryName = (book.getCategory() != null) ? book.getCategory().getName() : "N/A";
         args.putString("category", categoryName);
+        args.putInt("coverResId", book.getCoverImageResId());
 
-        // Thêm logic truyền cả URL ảnh (cho sách từ API)
-        args.putInt("coverResId", book.getCoverImageResId()); // Cho sách hard-code
-        args.putString("coverUrl", book.getCoverImage());       // Cho sách từ API
+        // --- BẮT ĐẦU SỬA LỖI ---
+        // Đổi "coverUrl" thành "coverImage" để nó nhất quán
+        args.putString("coverImage", book.getCoverImage());
+        // --- KẾT THÚC SỬA LỖI ---
 
-        // Truyền giá (price) và giảm giá (discount)
         args.putFloat("price", (float) book.getPrice());
         args.putInt("discount", (int) book.getDiscount());
 
-        // Default description
-        args.putString("description", "This is a great book. More details coming soon.");
-        args.putFloat("rating", 4.11f);
+        // Gửi mô tả và rating (Giả sử BookItem đã có)
+        args.putString("description", book.getDescription());
+        args.putFloat("rating", (float) book.getRating());
 
-        // Navigate using Navigation Component
         Navigation.findNavController(view).navigate(R.id.action_home_to_book_detail, args);
     }
 
@@ -206,9 +193,7 @@ public class BookAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return bookList.size();
     }
 
-    /**
-     * Hàm mới: Cập nhật dữ liệu cho adapter khi API gọi thành công
-     */
+    // (Hàm updateData giữ nguyên)
     public void updateData(List<BookItem> newBooks) {
         if (newBooks == null) return;
         bookList.clear();

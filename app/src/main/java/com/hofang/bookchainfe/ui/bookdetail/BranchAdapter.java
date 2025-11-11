@@ -30,6 +30,7 @@ public class BranchAdapter extends RecyclerView.Adapter<BranchAdapter.BranchView
     public interface OnBranchClickListener {
         void onViewOnMap(Branch branch);
         void onCallBranch(Branch branch);
+        void onSelectBranch(Branch branch); // <-- Interface đã có sẵn
     }
 
     public BranchAdapter(Context context, OnBranchClickListener listener) {
@@ -70,6 +71,7 @@ public class BranchAdapter extends RecyclerView.Adapter<BranchAdapter.BranchView
         TextView tvOpeningHours;
         LinearLayout layoutPhone;
         MaterialButton btnViewOnMap;
+        MaterialButton btnSelectBranch; // <-- 1. Thêm biến cho nút mới
 
         public BranchViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -81,16 +83,15 @@ public class BranchAdapter extends RecyclerView.Adapter<BranchAdapter.BranchView
             tvOpeningHours = itemView.findViewById(R.id.tv_opening_hours);
             layoutPhone = itemView.findViewById(R.id.layout_phone);
             btnViewOnMap = itemView.findViewById(R.id.btn_view_on_map);
+
+            // --- 2. Tìm ID cho nút mới ---
+            btnSelectBranch = itemView.findViewById(R.id.btn_select_branch);
         }
 
         public void bind(Branch branch) {
-            // Branch name
+            // ... (code bind tên, địa chỉ, khoảng cách giữ nguyên) ...
             tvBranchName.setText(branch.getName());
-
-            // Address
             tvAddress.setText(branch.getFullAddress());
-
-            // Distance
             if (branch.getDistance() != null && branch.getDistance() > 0) {
                 tvDistance.setVisibility(View.VISIBLE);
                 tvDistance.setText(String.format(Locale.getDefault(), "%.1f km", branch.getDistance()));
@@ -98,16 +99,24 @@ public class BranchAdapter extends RecyclerView.Adapter<BranchAdapter.BranchView
                 tvDistance.setVisibility(View.GONE);
             }
 
-            // Stock
+            // --- 3. Cập nhật logic stock để VÔ HIỆU HÓA nút ---
             if (branch.getQuantity() != null && branch.getQuantity() > 0) {
                 tvStock.setText(String.format(Locale.getDefault(), "%d in stock", branch.getQuantity()));
                 tvStock.setTextColor(context.getResources().getColor(android.R.color.holo_green_dark));
+
+                // Kích hoạt nút
+                btnSelectBranch.setEnabled(true);
+                btnSelectBranch.setText("Select this Branch");
             } else {
                 tvStock.setText("Out of stock");
                 tvStock.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
+
+                // Vô hiệu hóa nút
+                btnSelectBranch.setEnabled(false);
+                btnSelectBranch.setText("Out of Stock");
             }
 
-            // Phone
+            // ... (code bind điện thoại, giờ mở cửa, nút View on Map giữ nguyên) ...
             if (branch.getPhone() != null && !branch.getPhone().isEmpty()) {
                 layoutPhone.setVisibility(View.VISIBLE);
                 tvPhone.setText("Call");
@@ -120,7 +129,6 @@ public class BranchAdapter extends RecyclerView.Adapter<BranchAdapter.BranchView
                 layoutPhone.setVisibility(View.GONE);
             }
 
-            // Opening hours
             if (branch.getOpeningHours() != null && !branch.getOpeningHours().isEmpty()) {
                 tvOpeningHours.setVisibility(View.VISIBLE);
                 tvOpeningHours.setText("Open: " + branch.getOpeningHours());
@@ -128,10 +136,16 @@ public class BranchAdapter extends RecyclerView.Adapter<BranchAdapter.BranchView
                 tvOpeningHours.setVisibility(View.GONE);
             }
 
-            // View on Map button
             btnViewOnMap.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onViewOnMap(branch);
+                }
+            });
+
+            // --- 4. Gán listener cho nút Select ---
+            btnSelectBranch.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onSelectBranch(branch);
                 }
             });
         }

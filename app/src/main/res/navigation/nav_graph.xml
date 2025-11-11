@@ -206,6 +206,13 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_accountFragment_to_orderHistoryFragment"
+            app:destination="@id/orderHistoryFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -219,6 +226,12 @@
         android:name="com.hofang.bookchainfe.ui.address.AddressListFragment"
         android:label="Address List"
         tools:layout="@layout/fragment_address_list" />
+
+    <fragment
+        android:id="@+id/orderHistoryFragment"
+        android:name="com.hofang.bookchainfe.ui.payment.OrderHistoryFragment"
+        android:label="Order History"
+        tools:layout="@layout/fragment_orderhistory" />
 
     <fragment
         android:id="@+id/checkoutFragment"

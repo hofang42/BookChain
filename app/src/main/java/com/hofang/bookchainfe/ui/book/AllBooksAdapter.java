@@ -14,7 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.hofang.bookchainfe.R;
-import com.hofang.bookchainfe.network.ApiConfig;
+// Bỏ import ApiConfig vì không cần dùng BASE_URL ở đây nữa
+// import com.hofang.bookchainfe.network.ApiConfig;
 import com.hofang.bookchainfe.ui.home.BookItem;
 
 import java.text.NumberFormat;
@@ -73,6 +74,7 @@ public class AllBooksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return bookList.size();
     }
 
+    // (Các hàm setData, addData, addLoadingFooter, removeLoadingFooter giữ nguyên)
     public void setData(List<BookItem> newBooks) {
         bookList.clear();
         if (newBooks != null) {
@@ -102,6 +104,7 @@ public class AllBooksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
+
     // --- ViewHolders ---
 
     static class BookViewHolder extends RecyclerView.ViewHolder {
@@ -123,12 +126,16 @@ public class AllBooksAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             tvBookAuthor.setText(book.getAuthor());
             tvBookPrice.setText(formatter.format(book.getPrice()));
 
-            String baseUrl = ApiConfig.BASE_URL;
-            if (baseUrl.endsWith("/")) {
-                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
-            }
-            String imageUrl = baseUrl + book.getCoverImage();
-            Glide.with(context).load(imageUrl).placeholder(R.drawable.discount_badge_bg).into(ivBookCover);
+            // --- BẮT ĐẦU SỬA LỖI ---
+            // Đường dẫn 'book.getCoverImage()' đã là URL đầy đủ từ Cloudinary
+            String imageUrl = book.getCoverImage();
+
+            Glide.with(context)
+                    .load(imageUrl) // Load trực tiếp URL đầy đủ
+                    .placeholder(R.drawable.discount_badge_bg) // (Bạn nên đổi placeholder này)
+                    .error(R.drawable.ic_book_placeholder) // Thêm error placeholder
+                    .into(ivBookCover);
+            // --- KẾT THÚC SỬA LỖI ---
 
             // Click listeners
             itemView.setOnClickListener(v -> listener.onBookClick(book));

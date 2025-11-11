@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide;
 import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.model.CartItem;
 
+import java.text.NumberFormat; // Import
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -71,6 +72,9 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         private TextView btnIncrease;
         private ImageView btnDelete;
 
+        // Biến định dạng tiền tệ
+        private NumberFormat currencyFormatter;
+
         public CartViewHolder(@NonNull View itemView) {
             super(itemView);
             cbSelect = itemView.findViewById(R.id.cb_select);
@@ -81,6 +85,10 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             btnDecrease = itemView.findViewById(R.id.btn_decrease);
             btnIncrease = itemView.findViewById(R.id.btn_increase);
             btnDelete = itemView.findViewById(R.id.btn_delete);
+
+            // Khởi tạo định dạng tiền VN
+            Locale localeVN = new Locale("vi", "VN");
+            currencyFormatter = NumberFormat.getCurrencyInstance(localeVN);
         }
 
         public void bind(CartItem item) {
@@ -111,7 +119,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             tvQuantity.setText(String.valueOf(item.getQuantity()));
 
             // Set price (subtotal for this item)
-            tvPrice.setText(String.format(Locale.US, "$%.2f", item.getSubtotal()));
+            tvPrice.setText(currencyFormatter.format(item.getSubtotal()));
 
             // Decrease quantity
             btnDecrease.setOnClickListener(v -> {
@@ -120,7 +128,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                     int newQuantity = currentQuantity - 1;
                     item.setQuantity(newQuantity);
                     tvQuantity.setText(String.valueOf(newQuantity));
-                    tvPrice.setText(String.format(Locale.US, "$%.2f", item.getSubtotal()));
+                    // Cập nhật giá theo format VN
+                    tvPrice.setText(currencyFormatter.format(item.getSubtotal()));
                     if (listener != null) {
                         listener.onQuantityChanged(item, newQuantity);
                     }
@@ -133,7 +142,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                 int newQuantity = currentQuantity + 1;
                 item.setQuantity(newQuantity);
                 tvQuantity.setText(String.valueOf(newQuantity));
-                tvPrice.setText(String.format(Locale.US, "$%.2f", item.getSubtotal()));
+                // Cập nhật giá theo format VN
+                tvPrice.setText(currencyFormatter.format(item.getSubtotal()));
                 if (listener != null) {
                     listener.onQuantityChanged(item, newQuantity);
                 }

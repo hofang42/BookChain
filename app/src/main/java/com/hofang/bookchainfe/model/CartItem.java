@@ -1,8 +1,9 @@
 package com.hofang.bookchainfe.model;
+import java.io.Serializable;
 
 import com.google.gson.annotations.SerializedName;
 
-public class CartItem {
+public class CartItem implements Serializable {
     @SerializedName("_id")
     private String id;
     

@@ -14,13 +14,19 @@ public class CreatePaymentRequest {
     @SerializedName("deliveryAddress")
     private String deliveryAddress;
 
-    public CreatePaymentRequest(List<PaymentItem> items, float totalPrice, String deliveryAddress) {
+    // --- 1. THÊM TRƯỜNG branchId ---
+    @SerializedName("branchId")
+    private String branchId;
+
+    // --- 2. CẬP NHẬT CONSTRUCTOR ---
+    public CreatePaymentRequest(List<PaymentItem> items, float totalPrice, String deliveryAddress, String branchId) {
         this.items = items;
         this.totalPrice = totalPrice;
         this.deliveryAddress = deliveryAddress;
+        this.branchId = branchId; // <-- Gán branchId
     }
 
-    // --- Inner static class cho Item ---
+    // --- Inner static class cho Item (Giữ nguyên) ---
     public static class PaymentItem {
         @SerializedName("bookId")
         private String bookId;

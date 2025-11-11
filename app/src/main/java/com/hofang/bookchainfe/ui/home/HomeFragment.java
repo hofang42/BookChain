@@ -48,6 +48,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.hofang.bookchainfe.ui.home.BookItem;
 
 public class HomeFragment extends Fragment {
 
@@ -267,17 +268,42 @@ public class HomeFragment extends Fragment {
      */
     private void setupSearch() {
         searchAdapter = new SearchSuggestionAdapter(new SearchSuggestionAdapter.OnSuggestionClickListener() {
+
+            // --- BẮT ĐẦU SỬA LỖI ---
             @Override
             public void onBookClick(BookItem book) {
-                // TODO: Chuyển sang màn hình Book Detail
-                // Ví dụ: Intent intent = new Intent(getContext(), BookDetailActivity.class);
-                // intent.putExtra("BOOK_ID", book.getId()); // Giả sử book có getId()
-                // startActivity(intent);
-                Toast.makeText(getContext(), "Bấm vào: " + book.getTitle(), Toast.LENGTH_SHORT).show();
-
                 // Ẩn search sau khi chọn
                 toggleSearch(false);
+
+                // Tạo Bundle để gửi dữ liệu sách
+                Bundle args = new Bundle();
+                args.putString("bookId", book.getId());
+                args.putString("title", book.getTitle());
+                args.putString("author", book.getAuthor());
+
+                String categoryName = (book.getCategory() != null) ? book.getCategory().getName() : "N/A";
+                args.putString("category", categoryName);
+
+                // Gửi URL ảnh
+                args.putString("coverImage", book.getCoverImage()); // Dùng cho Glide
+
+                // Gửi giá và discount
+                args.putFloat("price", (float) book.getPrice());
+                args.putInt("discount", (int) book.getDiscount());
+
+                // Gửi mô tả và rating (Giả sử BookItem đã có)
+                args.putString("description", book.getDescription());
+                args.putFloat("rating", (float) book.getRating());
+
+                // Dùng NavController để điều hướng
+                try {
+                    NavController navController = NavHostFragment.findNavController(HomeFragment.this);
+                    navController.navigate(R.id.action_home_to_book_detail, args);
+                } catch (Exception e) {
+                    Log.e(TAG, "Navigation to BookDetail failed", e);
+                }
             }
+            // --- KẾT THÚC SỬA LỖI ---
 
             @Override
             public void onSeeAllClick(String query) {
@@ -286,10 +312,7 @@ public class HomeFragment extends Fragment {
                 Bundle args = new Bundle();
                 args.putString("searchQuery", currentQuery);
 
-                // Dùng NavController để điều hướng
                 NavController navController = NavHostFragment.findNavController(HomeFragment.this);
-
-                // DÙNG ID MỚI VÀ CHÍNH XÁC TỪ nav_graph.xml
                 navController.navigate(R.id.action_nav_home_to_allBooksFragment, args);
 
                 toggleSearch(false);

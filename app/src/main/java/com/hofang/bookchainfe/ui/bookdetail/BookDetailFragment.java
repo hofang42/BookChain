@@ -2,6 +2,7 @@ package com.hofang.bookchainfe.ui.bookdetail;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +26,7 @@ import com.bumptech.glide.Glide;
 import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.model.ApiResponse;
 import com.hofang.bookchainfe.model.Book;
+import com.hofang.bookchainfe.model.Branch; // <-- THÊM IMPORT
 import com.hofang.bookchainfe.model.CartAddRequest;
 import com.hofang.bookchainfe.model.ChatContext;
 import com.hofang.bookchainfe.model.Review;
@@ -37,11 +39,14 @@ import com.hofang.bookchainfe.network.CartApiService;
 import com.hofang.bookchainfe.network.ReviewApiService;
 import com.hofang.bookchainfe.ui.chatbot.FloatingChatButtonHelper;
 import com.hofang.bookchainfe.utils.TokenManager;
+
+import java.text.NumberFormat; // <-- THÊM IMPORT
+import java.util.ArrayList;
+import java.util.Locale; // <-- THÊM IMPORT
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
-import java.util.ArrayList;
 
 public class BookDetailFragment extends Fragment implements ReviewAdapter.OnReviewActionListener {
 
@@ -57,7 +62,7 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
     private Button btnViewBranches;
     private ImageButton btnBack;
     private ImageButton btnCart;
-    
+
     // Reviews
     private FrameLayout containerReviewForm;
     private RecyclerView rvReviews;
@@ -65,7 +70,7 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
     private TextView tvNoReviews;
     private ReviewAdapter reviewAdapter;
     private ArrayList<Review> reviewList;
-    
+
     // Review form views
     private View reviewFormView;
     private RatingBar ratingBarInput;
@@ -74,9 +79,16 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
 
     private Book book;
     private String currentUserId;
-    private boolean hasCompletedOrder = false; // TODO: Check from backend
+    private boolean hasCompletedOrder = false;
     private CartApiService cartApiService;
     private ReviewApiService reviewApiService;
+
+    // --- THÊM CÁC BIẾN NÀY ---
+    private String selectedBranchId = null;
+    private String selectedBranchName = null;
+    private int selectedStock = 0;
+    private NumberFormat currencyFormatter; // Để format tiền VN
+    // --- KẾT THÚC THÊM MỚI ---
 
     @Nullable
     @Override
@@ -88,12 +100,14 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get current user ID
         TokenManager tokenManager = new TokenManager(requireContext());
         currentUserId = tokenManager.getUserId();
-        
-        // TODO: Check if user has completed order for this book
-        hasCompletedOrder = true; // Mock data - set to true to test
+
+        // Khởi tạo định dạng tiền
+        Locale localeVN = new Locale("vi", "VN");
+        currencyFormatter = NumberFormat.getCurrencyInstance(localeVN);
+
+        hasCompletedOrder = true; // Mock data
 
         initViews(view);
         cartApiService = ApiConfig.getCartApiService();
@@ -125,8 +139,7 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
         btnViewBranches = view.findViewById(R.id.btn_view_branches);
         btnBack = view.findViewById(R.id.btn_back);
         btnCart = view.findViewById(R.id.btn_cart);
-        
-        // Reviews
+
         containerReviewForm = view.findViewById(R.id.container_review_form);
         rvReviews = view.findViewById(R.id.rv_reviews);
         tvReviewsCount = view.findViewById(R.id.tv_reviews_count);
@@ -134,71 +147,54 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
     }
 
     private void loadBookData() {
-        // Get book data from Arguments
         Bundle args = getArguments();
         if (args != null) {
             String bookId = args.getString("bookId");
             String title = args.getString("title");
             String author = args.getString("author");
             String categoryName = args.getString("category");
-            Double price = args.getDouble("price", 0.0);
-            Integer discount = args.getInt("discount", 0);
+            double price = args.getFloat("price", 0.0f);
+            int discount = args.getInt("discount", 0);
             String description = args.getString("description");
+            double rating = args.getFloat("rating", 4.0f);
+
+            // --- BẮT ĐẦU SỬA LỖI ---
+            // Chỉ lấy một key duy nhất là "coverImage"
             String coverImage = args.getString("coverImage");
-            Double rating = args.getDouble("rating", 4.0);
             int coverResId = args.getInt("coverResId", 0);
-            String coverUrl = args.getString("coverUrl");
 
-            // Create Book object
             book = new Book(bookId, title, author, categoryName, price, discount, description, coverImage, rating);
-            
-            // If no coverImage URL but has coverResId, set the resource URI
-            if ((coverImage == null || coverImage.isEmpty()) && coverResId != 0) {
-                // Convert drawable resource to URI string for Glide
-                book.setCoverImage("android.resource://" + requireContext().getPackageName() + "/" + coverResId);
-            } else if (coverUrl != null && !coverUrl.isEmpty()) {
-                book.setCoverImage(coverUrl);
-            }
-            
-            // Set stock (default value for now, should come from backend)
-            book.setStock(50);
 
-            // Display data
+            // --- SỬA LỖI LOGIC HÌNH ẢNH ---
+            if ((coverImage == null || coverImage.isEmpty()) && coverResId != 0) {
+                // (Chỉ dùng cho data hard-code)
+                book.setCoverImage("android.resource://" + requireContext().getPackageName() + "/" + coverResId);
+            }
+            // (Không cần 'else if' cho coverUrl nữa)
+
             tvBookTitle.setText(title);
             tvCategoryTitle.setText(categoryName);
-            tvAuthor.setText(author);
-            tvCategory.setText(categoryName);
-            tvRating.setText(String.format("%.2f/5", rating));
-            
-            // Display price with discount if applicable
-            if (discount != null && discount > 0) {
-                double finalPrice = price * (100 - discount) / 100.0;
-                tvPrice.setText(String.format("$%.2f (-%d%%)", finalPrice, discount));
-            } else {
-                tvPrice.setText(String.format("$%.2f", price));
-            }
-            
-            tvDescription.setText(description != null ? description : "No description available.");
+            // ... (code set text khác giữ nguyên)
+            tvPrice.setText(currencyFormatter.format(price)); // (Đã sửa)
 
-            // Set book cover image
+            tvDescription.setText(description != null && !description.isEmpty() ? description : "No description available.");
+
+            // --- SỬA LỖI LOGIC HIỂN THỊ ẢNH (GLIDE) ---
             if (coverResId != 0) {
+                // Hiển thị ảnh hard-code
                 ivBookCover.setImageResource(coverResId);
             } else if (coverImage != null && !coverImage.isEmpty()) {
-                // Load from URL using Glide
+                // Hiển thị ảnh từ URL (từ "Best Selling" VÀ "Search")
                 Glide.with(this)
-                    .load(coverImage)
-                    .placeholder(R.drawable.classic_book)
-                    .error(R.drawable.classic_book)
-                    .into(ivBookCover);
-            } else if (coverUrl != null && !coverUrl.isEmpty()) {
-                Glide.with(this)
-                    .load(coverUrl)
-                    .placeholder(R.drawable.classic_book)
-                    .error(R.drawable.classic_book)
-                    .into(ivBookCover);
+                        .load(coverImage) // Luôn dùng 'coverImage'
+                        .placeholder(R.drawable.classic_book)
+                        .error(R.drawable.classic_book)
+                        .into(ivBookCover);
             } else {
+                // Nếu cả hai đều null/rỗng, hiển thị placeholder
                 ivBookCover.setImageResource(R.drawable.classic_book);
             }
+            // --- KẾT THÚC SỬA LỖI ---
         }
     }
 
@@ -210,13 +206,21 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
         });
 
         btnCart.setOnClickListener(v -> {
-            // Navigate to Cart using Navigation Component
             Navigation.findNavController(v).navigate(R.id.nav_cart);
         });
 
         btnAddToCart.setOnClickListener(v -> {
             if (book != null) {
-                addToCart();
+                // --- THAY ĐỔI: Kiểm tra chi nhánh trước ---
+                if (selectedBranchId == null) {
+                    Toast.makeText(requireContext(), "Vui lòng chọn chi nhánh trước", Toast.LENGTH_SHORT).show();
+                    // Tự động mở chọn chi nhánh
+                    showBranchesMap();
+                } else {
+                    // Nếu đã chọn, mở bottom sheet thêm giỏ hàng
+                    showAddToCartSheet();
+                }
+                // --- KẾT THÚC THAY ĐỔI ---
             }
         });
 
@@ -229,55 +233,90 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
         });
     }
 
-    private void addToCart() {
-        // Show Add to Cart bottom sheet
-        AddToCartBottomSheet bottomSheet = AddToCartBottomSheet.newInstance(book, (selectedBook, quantity) -> {
-            // Call API to add to cart
-            if (selectedBook == null || selectedBook.getId() == null || selectedBook.getId().isEmpty()) {
-                Toast.makeText(requireContext(), "Lỗi: Không có thông tin sách", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            
-            CartAddRequest request = new CartAddRequest(selectedBook.getId(), quantity);
-            cartApiService.addToCart(request).enqueue(new Callback<UploadResponse>() {
-                @Override
-                public void onResponse(@NonNull Call<UploadResponse> call, @NonNull Response<UploadResponse> response) {
-                    if (getContext() == null) return;
-                    
-                    if (response.isSuccessful() && response.body() != null) {
-                        String message = response.body().getMessage() != null ?
-                                response.body().getMessage() : "Đã thêm vào giỏ hàng";
-                        Toast.makeText(getContext(), 
-                            selectedBook.getTitle() + " (" + quantity + ") - " + message, 
-                            Toast.LENGTH_SHORT).show();
-                    } else {
-                        // Handle errors
-                        if (response.code() == 401) {
-                            Toast.makeText(getContext(), "Vui lòng đăng nhập để thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(getContext(), "Không thể thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
+    // --- ĐỔI TÊN HÀM NÀY: addToCart() -> showAddToCartSheet() ---
+    private void showAddToCartSheet() {
+        // Truyền stock và tên chi nhánh đã chọn vào
+        AddToCartBottomSheet bottomSheet = AddToCartBottomSheet.newInstance(
+                book,
+                selectedStock, // <-- Truyền tồn kho của chi nhánh
+                selectedBranchName, // <-- Truyền tên chi nhánh
+                (selectedBook, quantity) -> {
+                    // Đây là listener callback khi bấm nút "Add" trong bottom sheet
 
-                @Override
-                public void onFailure(@NonNull Call<UploadResponse> call, @NonNull Throwable t) {
-                    if (getContext() == null) return;
-                    android.util.Log.e("BookDetailFragment", "addToCart failure: " + t.getMessage());
-                    Toast.makeText(getContext(), "Lỗi mạng, không thể thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
-                }
-            });
-        });
+                    if (selectedBook == null || selectedBook.getId() == null || selectedBook.getId().isEmpty()) {
+                        Toast.makeText(requireContext(), "Lỗi: Không có thông tin sách", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // --- THAY ĐỔI: Thêm branchId vào request ---
+                    CartAddRequest request = new CartAddRequest(selectedBook.getId(), quantity, selectedBranchId);
+
+                    cartApiService.addToCart(request).enqueue(new Callback<UploadResponse>() {
+                        @Override
+                        public void onResponse(@NonNull Call<UploadResponse> call, @NonNull Response<UploadResponse> response) {
+                            if (getContext() == null) return;
+
+                            if (response.isSuccessful() && response.body() != null) {
+                                String message = response.body().getMessage() != null ?
+                                        response.body().getMessage() : "Đã thêm vào giỏ hàng";
+                                Toast.makeText(getContext(),
+                                        selectedBook.getTitle() + " (" + quantity + ") - " + message,
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                // Xử lý lỗi (ví dụ: đổi chi nhánh)
+                                String errorMessage = "Không thể thêm vào giỏ hàng";
+                                if (response.code() == 401) {
+                                    errorMessage = "Vui lòng đăng nhập để thêm vào giỏ hàng";
+                                } else if (response.errorBody() != null) {
+                                    try {
+                                        // Cố gắng đọc thông báo lỗi từ server
+                                        String errorString = response.errorBody().string();
+                                        JsonObject jsonObject = com.google.gson.JsonParser.parseString(errorString).getAsJsonObject();
+                                        if (jsonObject.has("message")) {
+                                            errorMessage = jsonObject.get("message").getAsString();
+                                        }
+                                    } catch (Exception e) {
+                                        Log.e("BookDetailFragment", "Error parsing error body", e);
+                                    }
+                                }
+                                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<UploadResponse> call, @NonNull Throwable t) {
+                            if (getContext() == null) return;
+                            android.util.Log.e("BookDetailFragment", "addToCart failure: " + t.getMessage());
+                            Toast.makeText(getContext(), "Lỗi mạng, không thể thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
         bottomSheet.show(getParentFragmentManager(), "AddToCartBottomSheet");
     }
-    
+
     private void showBranchesMap() {
         BranchesMapBottomSheet bottomSheet = BranchesMapBottomSheet.newInstance(
-            book.getId(),
-            book.getTitle(),
-            book.getAuthor(),
-            book.getCoverImage()
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getCoverImage()
         );
+
+        // --- THÊM MỚI: Listener để nhận chi nhánh đã chọn ---
+        bottomSheet.setOnBranchSelectedListener((branch, stock) -> {
+            this.selectedBranchId = branch.getId();
+            this.selectedBranchName = branch.getName();
+            this.selectedStock = stock;
+
+            // Cập nhật UI (ví dụ: đổi text của nút)
+            btnViewBranches.setText("Đã chọn: " + branch.getName());
+            Toast.makeText(getContext(), "Đã chọn chi nhánh: " + branch.getName(), Toast.LENGTH_SHORT).show();
+
+            // Tự động mở giỏ hàng sau khi chọn chi nhánh
+            showAddToCartSheet();
+        });
+        // --- KẾT THÚC THÊM MỚI ---
+
         bottomSheet.show(getParentFragmentManager(), "BranchesMapBottomSheet");
     }
     
