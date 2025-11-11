@@ -14,6 +14,10 @@ const cartSchema = new Schema(
       required: true,
       unique: true,
     },
+    branchId: {
+      type: Schema.Types.ObjectId,
+      ref: "Branch",
+    },
     items: [cartItemSchema],
   },
   { timestamps: true }

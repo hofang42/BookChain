@@ -7,7 +7,6 @@
     android:background="@color/white"
     tools:context=".ui.checkout.CheckoutFragment">
 
-    <!-- Toolbar -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="0dp"
@@ -22,8 +21,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:padding="12dp"
-            android:src="@android:drawable/arrow_up_float"
-            android:rotation="270"
+            android:src="@drawable/ic_arrow_back"
             android:contentDescription="Back"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -38,18 +36,17 @@
 
     </com.google.android.material.appbar.MaterialToolbar>
 
-    <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp" />
+        tools:visibility="visible" />
 
-    <!-- Scrollable Content -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -64,7 +61,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Delivering Address Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -73,7 +69,6 @@
                 android:textStyle="bold"
                 android:textColor="@color/black" />
 
-            <!-- Address Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_address"
                 android:layout_width="match_parent"
@@ -90,7 +85,6 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- Header with name and default badge -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -119,7 +113,6 @@
 
                     </LinearLayout>
 
-                    <!-- Phone number -->
                     <TextView
                         android:id="@+id/tv_phone"
                         android:layout_width="wrap_content"
@@ -129,7 +122,6 @@
                         android:textColor="@color/white"
                         android:textSize="14sp" />
 
-                    <!-- Full address -->
                     <TextView
                         android:id="@+id/tv_full_address"
                         android:layout_width="match_parent"
@@ -140,7 +132,6 @@
                         android:textSize="14sp"
                         android:lineSpacingExtra="2dp" />
 
-                    <!-- Postal code -->
                     <TextView
                         android:id="@+id/tv_postal_code"
                         android:layout_width="wrap_content"
@@ -150,14 +141,12 @@
                         android:textColor="@color/white"
                         android:textSize="12sp" />
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginTop="12dp"
                         android:background="#444444" />
 
-                    <!-- Change button -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -180,7 +169,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Add New Delivery Address Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_add_new_delivery_address"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
@@ -193,52 +181,17 @@
                 app:strokeWidth="1dp"
                 app:cornerRadius="6dp" />
 
-            <!-- Payment Method Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Payment Method"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:layout_marginTop="24dp" />
-
-            <!-- Payment Options -->
-            <RadioGroup
-                android:id="@+id/radio_group_payment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
-
-                <RadioButton
-                    android:id="@+id/radio_credit_card"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:text="Credit Card"
-                    android:textSize="14sp"
-                    android:textColor="@color/black" />
-
-                <RadioButton
-                    android:id="@+id/radio_cash_on_delivery"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:text="Cash on Delivery"
-                    android:textSize="14sp"
-                    android:textColor="@color/black"
-                    android:checked="true" />
-
-            </RadioGroup>
-
         </LinearLayout>
 
     </ScrollView>
 
-    <!-- Pay Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_pay"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:text="Pay $60.00"
+
+        android:text="Thanh toán"
+
         android:textSize="16sp"
         android:textStyle="bold"
         android:backgroundTint="@color/black"
@@ -248,16 +201,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

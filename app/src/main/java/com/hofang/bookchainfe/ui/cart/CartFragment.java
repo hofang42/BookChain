@@ -37,8 +37,8 @@ import java.util.Locale;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.hofang.bookchainfe.model.QuantityUpdateRequest;
 
-// Implement interface của Adapter
 public class CartFragment extends Fragment implements CartAdapter.CartItemListener {
 
     private static final String TAG = "CartFragment";
@@ -57,6 +57,9 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
     private NumberFormat currencyFormatter;
     private double currentTotalPrice = 0.0;
     private List<CartItem> currentCartItems = new ArrayList<>();
+
+    // --- 1. THÊM BIẾN ĐỂ LƯU BRANCH ID ---
+    private String currentBranchId = null;
 
     @Nullable
     @Override
@@ -80,17 +83,33 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
                 return;
             }
 
-            // Calculate total from selected items
+            // 1. Lọc ra danh sách các item được chọn
+            List<CartItem> selectedItems = new ArrayList<>();
             double total = 0;
             for (CartItem item : currentCartItems) {
                 if (item.isSelected()) {
                     total += item.getSubtotal();
+                    selectedItems.add(item);
                 }
             }
 
+            // 2. Kiểm tra nếu không có gì được chọn
+            if (selectedItems.isEmpty()) {
+                Toast.makeText(getContext(), "Bạn chưa chọn sản phẩm nào", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // --- 2. THÊM KIỂM TRA branchId ---
+            if (currentBranchId == null || currentBranchId.isEmpty()) {
+                Toast.makeText(getContext(), "Lỗi: Không tìm thấy chi nhánh của giỏ hàng.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // 3. Đóng gói Bundle
             Bundle args = new Bundle();
             args.putFloat("totalPrice", (float) total);
-            args.putSerializable("cartItems", (Serializable) currentCartItems);
+            args.putSerializable("cartItems", (Serializable) selectedItems);
+            args.putString("branchId", currentBranchId); // <-- Thêm branchId vào Bundle
 
             NavHostFragment.findNavController(this)
                     .navigate(R.id.checkoutFragment, args);
@@ -110,9 +129,10 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
         tvTotalPrice = view.findViewById(R.id.tv_total_price);
         btnGoToCheckout = view.findViewById(R.id.btn_go_to_checkout);
         checkoutBar = view.findViewById(R.id.checkout_bar);
-        
-        // Ẩn checkout bar ngay từ đầu để tránh nháy khi load
-        checkoutBar.setVisibility(View.GONE);
+
+        if (checkoutBar != null) {
+            checkoutBar.setVisibility(View.GONE);
+        }
     }
 
     private void setupRecyclerView() {
@@ -123,14 +143,23 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
 
     private void fetchCart() {
         showLoading(true);
-        
+
         cartApiService.getCart().enqueue(new Callback<CartResponse>() {
             @Override
             public void onResponse(@NonNull Call<CartResponse> call, @NonNull Response<CartResponse> response) {
                 if (getContext() == null) return;
-                
+
                 if (response.isSuccessful() && response.body() != null) {
                     CartResponse cart = response.body();
+
+                    // --- 3. LẤY branchId TỪ RESPONSE ---
+                    if (cart.getBranch() != null) {
+                        currentBranchId = cart.getBranch().getId();
+                        Log.d(TAG, "Giỏ hàng thuộc chi nhánh: " + currentBranchId);
+                    } else {
+                        currentBranchId = null; // Giỏ hàng rỗng (không có chi nhánh)
+                    }
+                    // --- KẾT THÚC THÊM MỚI ---
 
                     if (cart.getItems() == null || cart.getItems().isEmpty()) {
                         showEmpty(true);
@@ -138,7 +167,6 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
                         currentTotalPrice = 0.0;
                     } else {
                         showEmpty(false);
-                        // Convert CartResponse.CartItem to CartItem
                         List<CartItem> items = convertToCartItems(cart.getItems());
                         adapter.setCartItems(items);
                         currentCartItems = items;
@@ -147,6 +175,7 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
                     updateTotalPrice();
                 } else {
                     Log.e(TAG, "fetchCart error: " + response.code());
+                    currentBranchId = null; // Reset nếu lỗi
                     showEmpty(true);
                 }
             }
@@ -155,6 +184,7 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
             public void onFailure(@NonNull Call<CartResponse> call, @NonNull Throwable t) {
                 if (getContext() == null) return;
                 Log.e(TAG, "fetchCart failure: " + t.getMessage());
+                currentBranchId = null; // Reset nếu lỗi
                 showEmpty(true);
             }
         });
@@ -164,7 +194,6 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
         List<CartItem> items = new ArrayList<>();
         for (CartResponse.CartItem responseItem : responseItems) {
             CartItem item = new CartItem();
-            // Convert BookItem to Book
             Book book = convertBookItemToBook(responseItem.getBook());
             item.setBook(book);
             item.setQuantity(responseItem.getQuantity());
@@ -176,7 +205,7 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
 
     private Book convertBookItemToBook(BookItem bookItem) {
         if (bookItem == null) return null;
-        
+
         Book book = new Book();
         book.setId(bookItem.getId());
         book.setTitle(bookItem.getTitle());
@@ -184,14 +213,13 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
         book.setPrice(bookItem.getPrice());
         book.setDiscount((int) bookItem.getDiscount());
         book.setCoverImage(bookItem.getCoverImage());
-        
-        // Set category if available
+
         if (bookItem.getCategory() != null) {
             Category category = new Category();
             category.setName(bookItem.getCategory().getName());
             book.setCategory(category);
         }
-        
+
         return book;
     }
 
@@ -202,44 +230,82 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
                 total += item.getSubtotal();
             }
         }
-        tvTotalPrice.setText(currencyFormatter.format(total));
+        if (tvTotalPrice != null) {
+            tvTotalPrice.setText(currencyFormatter.format(total));
+        }
     }
 
     private void showLoading(boolean isLoading) {
+        if (progressBar != null) {
+            progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        }
         if (isLoading) {
-            progressBar.setVisibility(View.VISIBLE);
-            rvCartItems.setVisibility(View.GONE);
-            tvEmptyCart.setVisibility(View.GONE);
-            checkoutBar.setVisibility(View.GONE);
-        } else {
-            progressBar.setVisibility(View.GONE);
+            if (rvCartItems != null) rvCartItems.setVisibility(View.GONE);
+            if (tvEmptyCart != null) tvEmptyCart.setVisibility(View.GONE);
+            if (checkoutBar != null) checkoutBar.setVisibility(View.GONE);
         }
     }
 
     private void showEmpty(boolean isEmpty) {
         showLoading(false);
         if (isEmpty) {
-            tvEmptyCart.setVisibility(View.VISIBLE);
-            rvCartItems.setVisibility(View.GONE);
-            checkoutBar.setVisibility(View.GONE);
+            if (tvEmptyCart != null) tvEmptyCart.setVisibility(View.VISIBLE);
+            if (rvCartItems != null) rvCartItems.setVisibility(View.GONE);
+            if (checkoutBar != null) checkoutBar.setVisibility(View.GONE);
         } else {
-            tvEmptyCart.setVisibility(View.GONE);
-            rvCartItems.setVisibility(View.VISIBLE);
-            checkoutBar.setVisibility(View.VISIBLE);
+            if (tvEmptyCart != null) tvEmptyCart.setVisibility(View.GONE);
+            if (rvCartItems != null) rvCartItems.setVisibility(View.VISIBLE);
+            if (checkoutBar != null) checkoutBar.setVisibility(View.VISIBLE);
         }
     }
 
-    // Implement CartAdapter.CartItemListener methods
     @Override
     public void onQuantityChanged(CartItem item, int newQuantity) {
         if (item == null || item.getBook() == null) return;
-        
+
         String bookId = item.getBook().getId();
         if (bookId == null || bookId.isEmpty()) return;
 
-        // Update quantity on server
-        // TODO: Implement update quantity API call
+        // --- BẮT ĐẦU SỬA ĐỔI ---
+
+        // 1. Cập nhật tổng tiền ngay lập tức (cho trải nghiệm mượt)
         updateTotalPrice();
+
+        // 2. Tạo request body
+        QuantityUpdateRequest request = new QuantityUpdateRequest(newQuantity);
+
+        // 3. Gọi API để cập nhật số lượng trên server
+        cartApiService.updateItemQuantity(bookId, request).enqueue(new Callback<UploadResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<UploadResponse> call, @NonNull Response<UploadResponse> response) {
+                if (getContext() == null) return;
+
+                if (response.isSuccessful() && response.body() != null) {
+                    // Cập nhật thành công
+                    Log.d(TAG, "Đã cập nhật số lượng cho " + bookId + " thành " + newQuantity);
+                    // (Không cần làm gì thêm vì UI đã được cập nhật)
+                } else {
+                    // Có lỗi xảy ra (ví dụ: hết hàng, v.v.)
+                    Log.e(TAG, "Lỗi khi cập nhật số lượng: " + response.code());
+                    Toast.makeText(getContext(), "Không thể cập nhật số lượng", Toast.LENGTH_SHORT).show();
+
+                    // -- QUAN TRỌNG: Tải lại giỏ hàng để đồng bộ lại --
+                    // (Ví dụ: server báo hết hàng, ta phải reset lại số lượng cũ)
+                    fetchCart();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<UploadResponse> call, @NonNull Throwable t) {
+                if (getContext() == null) return;
+                Log.e(TAG, "Lỗi mạng khi cập nhật số lượng: " + t.getMessage());
+                Toast.makeText(getContext(), "Lỗi mạng", Toast.LENGTH_SHORT).show();
+
+                // Tải lại giỏ hàng để đồng bộ lại
+                fetchCart();
+            }
+        });
+        // --- KẾT THÚC SỬA ĐỔI ---
     }
 
     @Override
@@ -248,13 +314,11 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
             Log.e(TAG, "onItemDeleted: CartItem hoặc Book null");
             return;
         }
-
         String bookId = item.getBook().getId();
         if (bookId == null || bookId.isEmpty()) {
             Log.e(TAG, "onItemDeleted: Book ID null hoặc rỗng");
             return;
         }
-
         callRemoveApi(bookId);
     }
 
@@ -265,18 +329,14 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
 
     @Override
     public void onItemClicked(CartItem item) {
-        // Navigate to book detail if needed
         if (item != null && item.getBook() != null && getView() != null) {
             Bundle args = new Bundle();
             Book book = item.getBook();
-            
             args.putString("bookId", book.getId());
             args.putString("title", book.getTitle());
             args.putString("author", book.getAuthor());
-            
             String categoryName = (book.getCategory() != null) ? book.getCategory().getName() : "N/A";
             args.putString("category", categoryName);
-            
             args.putFloat("price", book.getPrice() != null ? book.getPrice().floatValue() : 0.0f);
             args.putInt("discount", book.getDiscount() != null ? book.getDiscount() : 0);
             args.putString("description", book.getDescription());
@@ -284,35 +344,26 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
             args.putString("coverUrl", book.getCoverImage());
             args.putInt("coverResId", 0);
             args.putFloat("rating", book.getRating() != null ? book.getRating().floatValue() : 4.0f);
-            
             Navigation.findNavController(getView()).navigate(R.id.action_cart_to_book_detail, args);
         }
     }
 
-    /**
-     * Hàm gọi API xóa item khỏi giỏ hàng
-     */
     private void callRemoveApi(String bookId) {
         if (cartApiService == null) return;
-
         cartApiService.removeFromCart(bookId).enqueue(new Callback<UploadResponse>() {
             @Override
             public void onResponse(@NonNull Call<UploadResponse> call, @NonNull Response<UploadResponse> response) {
                 if (getContext() == null) return;
-
                 if (response.isSuccessful() && response.body() != null) {
                     String message = response.body().getMessage() != null ?
                             response.body().getMessage() : "Đã xóa sản phẩm";
                     Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-
-                    // Tải lại toàn bộ giỏ hàng để cập nhật list và tổng tiền
                     fetchCart();
                 } else {
                     Log.e(TAG, "removeFromCart error: " + response.code());
                     Toast.makeText(getContext(), "Lỗi khi xóa sản phẩm", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onFailure(@NonNull Call<UploadResponse> call, @NonNull Throwable t) {
                 if (getContext() == null) return;

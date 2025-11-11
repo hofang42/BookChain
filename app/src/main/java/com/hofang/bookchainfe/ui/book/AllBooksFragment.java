@@ -18,15 +18,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.ActionBar; // <-- THÊM IMPORT NÀY
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.MenuHost;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.JsonObject;
 import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.model.BookListResponse;
 import com.hofang.bookchainfe.model.CartAddRequest;
@@ -34,6 +37,7 @@ import com.hofang.bookchainfe.model.UploadResponse;
 import com.hofang.bookchainfe.network.ApiConfig;
 import com.hofang.bookchainfe.network.BookApiService;
 import com.hofang.bookchainfe.network.CartApiService;
+import com.hofang.bookchainfe.ui.bookdetail.BranchesMapBottomSheet;
 import com.hofang.bookchainfe.ui.home.BookItem;
 
 import java.util.List;
@@ -56,13 +60,11 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
     private ProgressBar progressBar;
     private TextView tvEmptyState;
 
-    // Logic Phân trang
+    // (Các biến logic khác giữ nguyên)
     private boolean isLoading = false;
     private int currentPage = 1;
     private int totalPages = 1;
     private static final int PAGE_SIZE = 10;
-
-    // Logic Search & Filter
     private String currentQuery = "";
     private String sortBy = null;
     private String sortOrder = null;
@@ -84,7 +86,7 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
         apiService = ApiConfig.getBookApiService();
         cartApiService = ApiConfig.getCartApiService();
 
-        setupToolbarAndMenu();
+        setupToolbarAndMenu(); // <-- Sửa đổi trong hàm này
 
         if (getArguments() != null) {
             currentQuery = getArguments().getString("searchQuery", "");
@@ -103,6 +105,17 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
 
     private void setupToolbarAndMenu() {
         ((AppCompatActivity) requireActivity()).setSupportActionBar(toolbar);
+
+        // --- THÊM MỚI (PHẦN 1): Kích hoạt nút Back (Up) trên Toolbar ---
+        ActionBar actionBar = ((AppCompatActivity) requireActivity()).getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayShowHomeEnabled(true);
+            // (Bạn có thể thêm icon tùy chỉnh ở đây nếu muốn, nếu không nó sẽ dùng icon mặc định)
+            // actionBar.setHomeAsUpIndicator(R.drawable.ic_arrow_back);
+        }
+        // --- KẾT THÚC THÊM MỚI (PHẦN 1) ---
+
         MenuHost menuHost = requireActivity();
         menuHost.addMenuProvider(new MenuProvider() {
             @Override
@@ -121,6 +134,15 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
 
             @Override
             public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+                // --- THÊM MỚI (PHẦN 2): Xử lý sự kiện bấm nút Back ---
+                // android.R.id.home là ID mặc định của nút Back trên Toolbar
+                if (menuItem.getItemId() == android.R.id.home) {
+                    // Dùng NavController để quay lại màn hình trước đó
+                    Navigation.findNavController(requireView()).popBackStack();
+                    return true;
+                }
+                // --- KẾT THÚC THÊM MỚI (PHẦN 2) ---
+
                 if (menuItem.getItemId() == R.id.action_filter) {
                     showFilterDialog();
                     return true;
@@ -131,6 +153,7 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
     }
 
     private void setupSearchViewListeners() {
+        // (Hàm này giữ nguyên)
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -152,6 +175,7 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
     }
 
     private void showFilterDialog() {
+        // (Hàm này giữ nguyên)
         if (getContext() == null) return;
         String[] options = {"Mặc định", "Giá: Thấp đến Cao", "Giá: Cao đến Thấp"};
         new AlertDialog.Builder(getContext())
@@ -171,11 +195,13 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
     }
 
     private void performSearch(String query) {
+        // (Hàm này giữ nguyên)
         currentQuery = query.trim();
         fetchBooks(currentQuery, true);
     }
 
     private void setupRecyclerView() {
+        // (Hàm này giữ nguyên)
         adapter = new AllBooksAdapter(getContext(), this);
         rvAllBooks.setLayoutManager(new LinearLayoutManager(getContext()));
         rvAllBooks.setAdapter(adapter);
@@ -201,6 +227,7 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
     }
 
     private void fetchBooks(String query, boolean isReset) {
+        // (Hàm này giữ nguyên)
         if (isLoading) return;
         isLoading = true;
         if (isReset) {
@@ -223,7 +250,6 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
 
                         if (response.isSuccessful() && response.body() != null) {
                             List<BookItem> books = response.body().getData();
-                            // Tạm thời đoán totalPages nếu API chưa trả về
                             if (books.size() < PAGE_SIZE) {
                                 totalPages = currentPage;
                             } else {
@@ -268,37 +294,80 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
 
     @Override
     public void onBookClick(BookItem book) {
-        // TODO: Navigate to Book Detail screen
-        Toast.makeText(getContext(), "Clicked: " + book.getTitle(), Toast.LENGTH_SHORT).show();
+        // (Hàm này giữ nguyên - đã sửa ở lần trước)
+        Bundle args = new Bundle();
+        args.putString("bookId", book.getId());
+        args.putString("title", book.getTitle());
+        args.putString("author", book.getAuthor());
+        args.putString("category", book.getCategory() != null ? book.getCategory().getName() : "N/A");
+        args.putFloat("price", (float) book.getPrice());
+        args.putInt("discount", (int) book.getDiscount());
+        args.putString("description", book.getDescription());
+        args.putFloat("rating", (float) book.getRating());
+        args.putString("coverImage", book.getCoverImage());
+
+        try {
+            Navigation.findNavController(requireView()).navigate(R.id.action_allBooks_to_book_detail, args);
+        } catch (Exception e) {
+            Log.e(TAG, "Navigation failed", e);
+        }
     }
 
     @Override
     public void onCartClick(BookItem book) {
+        // (Hàm này giữ nguyên)
         if (getContext() == null) return;
+        showBranchesMap(book);
+    }
 
-        // Call API to add to cart
-        CartAddRequest request = new CartAddRequest(book.getId(), 1);
-        cartApiService.addToCart(request).enqueue(new Callback<UploadResponse>() {
-            @Override
-            public void onResponse(@NonNull Call<UploadResponse> call, @NonNull Response<UploadResponse> response) {
-                if (getContext() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    Toast.makeText(getContext(), response.body().getMessage(), Toast.LENGTH_SHORT).show();
-                } else {
-                    // Handle 401 (Unauthorized) or other errors
-                    if (response.code() == 401) {
-                        Toast.makeText(getContext(), "Please login to add items", Toast.LENGTH_SHORT).show();
+    private void showBranchesMap(BookItem book) {
+        // (Hàm này giữ nguyên)
+        BranchesMapBottomSheet bottomSheet = BranchesMapBottomSheet.newInstance(
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getCoverImage()
+        );
+
+        bottomSheet.setOnBranchSelectedListener((branch, stock) -> {
+            if (stock <= 0) {
+                Toast.makeText(getContext(), "Hết hàng tại chi nhánh " + branch.getName(), Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            CartAddRequest request = new CartAddRequest(book.getId(), 1, branch.getId());
+            cartApiService.addToCart(request).enqueue(new Callback<UploadResponse>() {
+                @Override
+                public void onResponse(@NonNull Call<UploadResponse> call, @NonNull Response<UploadResponse> response) {
+                    if (getContext() == null) return;
+                    if (response.isSuccessful() && response.body() != null) {
+                        Toast.makeText(getContext(), response.body().getMessage(), Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(getContext(), "Failed to add to cart", Toast.LENGTH_SHORT).show();
+                        String errorMessage = "Failed to add to cart";
+                        if (response.code() == 401) {
+                            errorMessage = "Please login to add items";
+                        } else if (response.errorBody() != null) {
+                            try {
+                                String errorString = response.errorBody().string();
+                                JsonObject jsonObject = com.google.gson.JsonParser.parseString(errorString).getAsJsonObject();
+                                if (jsonObject.has("message")) {
+                                    errorMessage = jsonObject.get("message").getAsString();
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parsing error body", e);
+                            }
+                        }
+                        Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                     }
                 }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<UploadResponse> call, @NonNull Throwable t) {
-                if (getContext() == null) return;
-                Toast.makeText(getContext(), "Network error", Toast.LENGTH_SHORT).show();
-            }
+                @Override
+                public void onFailure(@NonNull Call<UploadResponse> call, @NonNull Throwable t) {
+                    if (getContext() == null) return;
+                    Toast.makeText(getContext(), "Network error", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
+
+        bottomSheet.show(getParentFragmentManager(), "BranchesMapBottomSheet_AllBooks");
     }
 }

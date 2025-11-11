@@ -3,7 +3,6 @@ package com.hofang.bookchainfe.ui.bookdetail;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -51,7 +50,7 @@ import retrofit2.Response;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BranchesMapBottomSheet extends BottomSheetDialogFragment 
+public class BranchesMapBottomSheet extends BottomSheetDialogFragment
         implements BranchAdapter.OnBranchClickListener, OnMapReadyCallback {
 
     private static final String TAG = "BranchesMapBottomSheet";
@@ -60,6 +59,13 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
     private static final String ARG_BOOK_TITLE = "book_title";
     private static final String ARG_BOOK_AUTHOR = "book_author";
     private static final String ARG_BOOK_COVER = "book_cover";
+
+    // --- THÊM MỚI: Interface/Listener ---
+    public interface OnBranchSelectedListener {
+        void onBranchSelected(Branch branch, int stock);
+    }
+    private OnBranchSelectedListener mListener;
+    // --- KẾT THÚC THÊM MỚI ---
 
     private String bookId;
     private String bookTitle;
@@ -89,8 +95,14 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
     private List<Branch> currentBranches = new ArrayList<>();
     private boolean isMapView = false;
 
-    public static BranchesMapBottomSheet newInstance(String bookId, String bookTitle, 
-                                                      String bookAuthor, String bookCover) {
+    // --- THÊM MỚI: Hàm để set listener ---
+    public void setOnBranchSelectedListener(OnBranchSelectedListener listener) {
+        this.mListener = listener;
+    }
+    // --- KẾT THÚC THÊM MỚI ---
+
+    public static BranchesMapBottomSheet newInstance(String bookId, String bookTitle,
+                                                     String bookAuthor, String bookCover) {
         BranchesMapBottomSheet fragment = new BranchesMapBottomSheet();
         Bundle args = new Bundle();
         args.putString(ARG_BOOK_ID, bookId);
@@ -156,78 +168,78 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
         rvBranches.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvBranches.setAdapter(adapter);
     }
-    
+
     private void setupMapView(Bundle savedInstanceState) {
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
     }
-    
+
     private void setupViewToggle() {
         // Default to list view
         showListView();
-        
+
         btnViewList.setOnClickListener(v -> showListView());
         btnViewMap.setOnClickListener(v -> showMapView());
     }
-    
+
     private void showListView() {
         isMapView = false;
         rvBranches.setVisibility(View.VISIBLE);
         mapContainer.setVisibility(View.GONE);
-        
+
         // Update button styles
         btnViewList.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
             getResources().getColor(android.R.color.white, null)));
         btnViewList.setTextColor(getResources().getColor(android.R.color.black, null));
-        
+
         btnViewMap.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
             getResources().getColor(android.R.color.darker_gray, null)));
         btnViewMap.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
     }
-    
+
     private void showMapView() {
         isMapView = true;
         rvBranches.setVisibility(View.GONE);
         mapContainer.setVisibility(View.VISIBLE);
-        
+
         // Update button styles
         btnViewMap.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
             getResources().getColor(android.R.color.white, null)));
         btnViewMap.setTextColor(getResources().getColor(android.R.color.black, null));
-        
+
         btnViewList.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
             getResources().getColor(android.R.color.darker_gray, null)));
         btnViewList.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
-        
+
         // Display branches on map
         displayBranchesOnMap();
     }
-    
+
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
-        
+
         // Enable zoom controls
         googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setZoomGesturesEnabled(true);
-        
+
         // If we have branches, display them
         if (!currentBranches.isEmpty()) {
             displayBranchesOnMap();
         }
     }
-    
+
     private void displayBranchesOnMap() {
         if (googleMap == null || currentBranches.isEmpty()) {
             return;
         }
-        
+
         // Clear existing markers
         googleMap.clear();
-        
+
         LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
         boolean hasBounds = false;
-        
+
         // Add user location if available
         if (userLatitude != null && userLongitude != null) {
             LatLng userLocation = new LatLng(userLatitude, userLongitude);
@@ -238,32 +250,32 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
             boundsBuilder.include(userLocation);
             hasBounds = true;
         }
-        
+
         // Add branch markers
         for (Branch branch : currentBranches) {
             if (branch.getLocation() != null && branch.getLocation().getCoordinates() != null) {
                 double lat = branch.getLocation().getLatitude();
                 double lng = branch.getLocation().getLongitude();
                 LatLng position = new LatLng(lat, lng);
-                
+
                 String title = branch.getName();
-                String snippet = branch.getQuantity() != null ? 
+                String snippet = branch.getQuantity() != null ?
                     branch.getQuantity() + " books available" : "Available";
                 if (branch.getDistance() != null) {
                     snippet += " • " + String.format("%.2f km away", branch.getDistance());
                 }
-                
+
                 googleMap.addMarker(new MarkerOptions()
                     .position(position)
                     .title(title)
                     .snippet(snippet)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                
+
                 boundsBuilder.include(position);
                 hasBounds = true;
             }
         }
-        
+
         // Adjust camera to show all markers
         if (hasBounds) {
             try {
@@ -304,11 +316,11 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
 
     private void getUserLocationAndFetchBranches() {
         // Check if we have location permission
-        if (ContextCompat.checkSelfPermission(requireContext(), 
+        if (ContextCompat.checkSelfPermission(requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(requireContext(), 
+            ContextCompat.checkSelfPermission(requireContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            
+
             // Request permission
             Log.d(TAG, "Requesting location permission...");
             requestPermissions(
@@ -326,10 +338,10 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, 
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        
+
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted
@@ -338,8 +350,8 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
             } else {
                 // Permission denied
                 Log.d(TAG, "Location permission denied, fetching branches without location");
-                Toast.makeText(requireContext(), 
-                    "Location permission denied. Showing all branches without distance sorting.", 
+                Toast.makeText(requireContext(),
+                    "Location permission denied. Showing all branches without distance sorting.",
                     Toast.LENGTH_LONG).show();
                 fetchBranches(null, null);
             }
@@ -348,9 +360,9 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
 
     private void getLastKnownLocation() {
         // Double check permission before accessing location
-        if (ActivityCompat.checkSelfPermission(requireContext(), 
+        if (ActivityCompat.checkSelfPermission(requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(requireContext(), 
+            ActivityCompat.checkSelfPermission(requireContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "Permission check failed, fetching without location");
             fetchBranches(null, null);
@@ -367,16 +379,16 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
                         fetchBranches(userLatitude, userLongitude);
                     } else {
                         Log.d(TAG, "Location is null, fetching branches without location");
-                        Toast.makeText(requireContext(), 
-                            "Unable to get current location. Showing all branches.", 
+                        Toast.makeText(requireContext(),
+                            "Unable to get current location. Showing all branches.",
                             Toast.LENGTH_SHORT).show();
                         fetchBranches(null, null);
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Failed to get location: " + e.getMessage());
-                    Toast.makeText(requireContext(), 
-                        "Failed to get location. Showing all branches.", 
+                    Toast.makeText(requireContext(),
+                        "Failed to get location. Showing all branches.",
                         Toast.LENGTH_SHORT).show();
                     fetchBranches(null, null);
                 });
@@ -393,33 +405,33 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
         Call<BranchesResponse> call = bookApiService.getBranchesWithBook(bookId, lat, lng, 20);
         call.enqueue(new Callback<BranchesResponse>() {
             @Override
-            public void onResponse(@NonNull Call<BranchesResponse> call, 
+            public void onResponse(@NonNull Call<BranchesResponse> call,
                                  @NonNull Response<BranchesResponse> response) {
                 showLoading(false);
 
                 if (response.isSuccessful() && response.body() != null) {
                     BranchesResponse branchesResponse = response.body();
-                    
-                    if (branchesResponse.getBranches() != null && 
+
+                    if (branchesResponse.getBranches() != null &&
                         !branchesResponse.getBranches().isEmpty()) {
                         // Store branches
                         currentBranches = branchesResponse.getBranches();
-                        
+
                         // Show branches in list
                         adapter.setBranches(currentBranches);
-                        
+
                         // Update count message based on location availability
                         String countMessage;
                         if (lat != null && lng != null) {
-                            countMessage = "Found " + branchesResponse.getTotalBranches() + 
+                            countMessage = "Found " + branchesResponse.getTotalBranches() +
                                          " branch(es) nearby (sorted by distance)";
                         } else {
-                            countMessage = "Found " + branchesResponse.getTotalBranches() + 
+                            countMessage = "Found " + branchesResponse.getTotalBranches() +
                                          " branch(es) with this book";
                         }
                         tvBranchesCount.setText(countMessage);
                         showEmptyState(false);
-                        
+
                         // If map is ready and we're in map view, display branches
                         if (isMapView && googleMap != null) {
                             displayBranchesOnMap();
@@ -433,7 +445,7 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
                 } else {
                     Log.e(TAG, "Failed to fetch branches: " + response.code());
                     showEmptyState(true);
-                    Toast.makeText(requireContext(), 
+                    Toast.makeText(requireContext(),
                         "Failed to load branches", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -443,7 +455,7 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
                 showLoading(false);
                 showEmptyState(true);
                 Log.e(TAG, "Error fetching branches: " + t.getMessage());
-                Toast.makeText(requireContext(), 
+                Toast.makeText(requireContext(),
                     "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -465,13 +477,13 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
         if (branch.getLocation() != null && branch.getLocation().getCoordinates() != null) {
             double lat = branch.getLocation().getLatitude();
             double lng = branch.getLocation().getLongitude();
-            
+
             // Open Google Maps with marker
-            String uri = String.format("geo:%f,%f?q=%f,%f(%s)", 
+            String uri = String.format("geo:%f,%f?q=%f,%f(%s)",
                 lat, lng, lat, lng, Uri.encode(branch.getName()));
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
             intent.setPackage("com.google.android.apps.maps");
-            
+
             if (intent.resolveActivity(requireContext().getPackageManager()) != null) {
                 startActivity(intent);
             } else {
@@ -482,7 +494,7 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
                 startActivity(browserIntent);
             }
         } else {
-            Toast.makeText(requireContext(), 
+            Toast.makeText(requireContext(),
                 "Location information not available", Toast.LENGTH_SHORT).show();
         }
     }
@@ -495,7 +507,19 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
             startActivity(intent);
         }
     }
-    
+
+    // --- THÊM MỚI: Xử lý khi bấm nút "Select" ---
+    @Override
+    public void onSelectBranch(Branch branch) {
+        if (mListener != null) {
+            // Lấy số lượng tồn kho (stock) từ branch.getQuantity()
+            int stock = (branch.getQuantity() != null) ? branch.getQuantity() : 0;
+            mListener.onBranchSelected(branch, stock);
+        }
+        dismiss();
+    }
+    // --- KẾT THÚC THÊM MỚI ---
+
     // MapView lifecycle methods
     @Override
     public void onResume() {
@@ -504,7 +528,7 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
             mapView.onResume();
         }
     }
-    
+
     @Override
     public void onPause() {
         super.onPause();
@@ -512,7 +536,7 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
             mapView.onPause();
         }
     }
-    
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -520,7 +544,7 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
             mapView.onDestroy();
         }
     }
-    
+
     @Override
     public void onLowMemory() {
         super.onLowMemory();
@@ -528,7 +552,7 @@ public class BranchesMapBottomSheet extends BottomSheetDialogFragment
             mapView.onLowMemory();
         }
     }
-    
+
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);

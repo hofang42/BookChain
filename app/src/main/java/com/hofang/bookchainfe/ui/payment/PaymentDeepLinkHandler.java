@@ -115,11 +115,31 @@ public class PaymentDeepLinkHandler {
             }
         }
 
-        // 2. Điều hướng về Giỏ hàng
-        boolean popped = navController.popBackStack(R.id.nav_cart, false);
-        if (!popped) {
-            navController.navigate(R.id.nav_cart);
+        // --- BẮT ĐẦU SỬA ĐỔI ---
+        // 2. Điều hướng về Giỏ hàng (theo cách an toàn)
+
+        // Logic cũ (bị lỗi khi app bị kill):
+        // boolean popped = navController.popBackStack(R.id.nav_cart, false);
+        // if (!popped) {
+        //     navController.navigate(R.id.nav_cart); // Lệnh này thất bại
+        // }
+
+        // Logic mới: Xóa toàn bộ stack và điều hướng đến nav_cart
+        // Đây là cách đảm bảo bạn luôn "hạ cánh" đúng tab
+        try {
+            NavOptions navOptions = new NavOptions.Builder()
+                    .setPopUpTo(R.id.nav_graph, true) // Xóa toàn bộ back stack
+                    .build();
+
+            navController.navigate(R.id.nav_cart, null, navOptions);
+            Log.i(TAG, "Đã điều hướng về nav_cart và xóa back stack.");
+
+        } catch (Exception e) {
+            Log.e(TAG, "Không thể điều hướng về nav_cart. Lỗi: " + e.getMessage());
+            // Fallback cuối cùng: Thử pop về home
+            // navController.popBackStack(R.id.nav_home, false);
         }
+        // --- KẾT THÚC SỬA ĐỔI ---
     }
 
     private void callCancelOrderApi(long orderCode) {

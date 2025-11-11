@@ -26,6 +26,10 @@ import com.hofang.bookchainfe.network.ApiConfig;
 import com.hofang.bookchainfe.services.ChatNotificationService;
 import com.hofang.bookchainfe.utils.TokenManager;
 import com.hofang.bookchainfe.ui.payment.PaymentDeepLinkHandler;
+import androidx.core.content.ContextCompat;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
     private NavController navController;
     private PaymentDeepLinkHandler paymentHandler;
 
+    /**
+     * Khởi tạo Activity, thiết lập Navigation và xử lý deep link.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,11 +72,36 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
             BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+
             if (bottomNav != null) {
-                bottomNav.setVisibility(View.GONE);
                 bottomNav.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
                 NavigationUI.setupWithNavController(bottomNav, navController);
 
+                // Định nghĩa các màn hình "cấp 1" (nơi nav bar NÊN hiển thị)
+                Set<Integer> topLevelDestinations = new HashSet<>();
+                topLevelDestinations.add(R.id.nav_home);
+                topLevelDestinations.add(R.id.nav_categories);
+                topLevelDestinations.add(R.id.nav_cart);
+                topLevelDestinations.add(R.id.nav_account);
+
+                // Thêm một listener để tự động ẩn/hiện nav bar
+                navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+                    if (topLevelDestinations.contains(destination.getId())) {
+                        bottomNav.setVisibility(View.VISIBLE);
+                    } else {
+                        bottomNav.setVisibility(View.GONE);
+                    }
+                });
+
+                // Xử lý deep link (nếu có) SAU KHI view đã sẵn sàng
+                // (Sửa lỗi NullPointerException)
+                bottomNav.post(() -> {
+                    if (navController != null) {
+                        paymentHandler.handleIntent(getIntent(), navController);
+                    }
+                });
+
+                // Xử lý padding cho nav bar
                 ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, insets) -> {
                     Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
                     v.setPadding(v.getPaddingLeft(), v.getPaddingTop(),
@@ -78,26 +110,22 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         }
-
-        // --- Handle payment deep link if present ---
-        if (navController != null) {
-            paymentHandler.handleIntent(getIntent(), navController);
-        }
     }
 
     /**
-     * Start chat notification service if user is logged in
+     * Khởi động service thông báo chat nếu người dùng đã đăng nhập.
      */
     private void startNotificationService() {
         TokenManager tokenManager = new TokenManager(this);
         if (tokenManager.isLoggedIn()) {
             Intent serviceIntent = new Intent(this, ChatNotificationService.class);
-            startService(serviceIntent);
+            // Sửa lỗi crash service bằng cách dùng ContextCompat
+            ContextCompat.startForegroundService(this, serviceIntent);
         }
     }
 
     /**
-     * Check and request notification permission for Android 13+ (API 33+)
+     * Kiểm tra và yêu cầu quyền gửi thông báo (cho Android 13+).
      */
     private void checkAndRequestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -110,6 +138,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Xử lý deep link (như link thanh toán) khi Activity đã chạy.
+     */
     @Override
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -122,6 +153,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Xử lý kết quả sau khi người dùng cho phép/từ chối quyền.
+     */
     @Override
     public void onRequestPermissionsResult(
             int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -133,14 +167,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Notification permission granted");
             } else {
                 Log.w(TAG, "Notification permission denied");
-                // Optionally: show explanation dialog here
             }
         }
     }
 
+    /**
+     * Dọn dẹp khi Activity bị hủy.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Service continues running in background, no need to stop explicitly
     }
 }

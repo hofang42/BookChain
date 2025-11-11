@@ -67,7 +67,7 @@
                         android:layout_gravity="center"
                         android:contentDescription="profile avatar"
                         android:src="@drawable/ic_person_white"
-                        android:tint="@null" />
+                        app:tint="@null" />
 
                 </FrameLayout>
             </FrameLayout>
@@ -260,7 +260,45 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_arrow_forward"
-                            android:tint="@color/accent_black" />
+                            app:tint="@color/accent_black" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_order_history"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/account_card_height"
+                    android:layout_marginTop="@dimen/account_card_margin_top"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/account_card_gray"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Order History"
+                            android:textSize="16sp"
+                            android:textColor="@color/accent_black"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            app:tint="@color/accent_black" />
 
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
