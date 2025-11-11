@@ -123,26 +123,6 @@
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
-                <!-- Category -->
-                <TextView
-                    android:id="@+id/tv_category_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Category :"
-                    android:textColor="#666666"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/tv_category"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Classics"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
                 <!-- Rating -->
                 <TextView
                     android:id="@+id/tv_rating_label"

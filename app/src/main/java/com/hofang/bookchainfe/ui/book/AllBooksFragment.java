@@ -18,7 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.ActionBar; // <-- THÊM IMPORT NÀY
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.MenuHost;
@@ -33,6 +33,7 @@ import com.google.gson.JsonObject;
 import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.model.BookListResponse;
 import com.hofang.bookchainfe.model.CartAddRequest;
+import com.hofang.bookchainfe.model.Category; // <-- SỬA Ở ĐÂY: Import model Category
 import com.hofang.bookchainfe.model.UploadResponse;
 import com.hofang.bookchainfe.network.ApiConfig;
 import com.hofang.bookchainfe.network.BookApiService;
@@ -40,6 +41,7 @@ import com.hofang.bookchainfe.network.CartApiService;
 import com.hofang.bookchainfe.ui.bookdetail.BranchesMapBottomSheet;
 import com.hofang.bookchainfe.ui.home.BookItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -60,17 +62,23 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
     private ProgressBar progressBar;
     private TextView tvEmptyState;
 
-    // (Các biến logic khác giữ nguyên)
+    // Logic Phân trang & Sort
     private boolean isLoading = false;
     private int currentPage = 1;
     private int totalPages = 1;
     private static final int PAGE_SIZE = 10;
     private String currentQuery = "";
-    private String sortBy = null;
-    private String sortOrder = null;
+    private String sortBy = "createdAt";
+    private String sortOrder = "desc";
     private int selectedSortIndex = 0;
     private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
+
+    // --- Logic Lọc Category ---
+    private String currentCategoryId = null;
+    private int selectedCategoryIndex = 0;
+    private List<Category> categoryList = new ArrayList<>(); // <-- SỬA Ở ĐÂY: Dùng model Category
+    // --- KẾT THÚC SỬA ĐỔI ---
 
     @Nullable
     @Override
@@ -86,14 +94,45 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
         apiService = ApiConfig.getBookApiService();
         cartApiService = ApiConfig.getCartApiService();
 
-        setupToolbarAndMenu(); // <-- Sửa đổi trong hàm này
+        setupToolbarAndMenu();
 
         if (getArguments() != null) {
             currentQuery = getArguments().getString("searchQuery", "");
+
+            // (Code xử lý categoryId giữ nguyên)
+            if (getArguments().containsKey("categoryId")) {
+                currentCategoryId = getArguments().getString("categoryId");
+                String categoryName = getArguments().getString("categoryName", "");
+                if (!categoryName.isEmpty() && toolbar != null) {
+                    toolbar.setSubtitle("Lọc theo: " + categoryName);
+                }
+            }
+
+            // --- BẮT ĐẦU THÊM MỚI ---
+            // Đọc tham số Sắp xếp (Sort)
+            if (getArguments().containsKey("sortBy") && getArguments().getString("sortBy") != null) {
+                sortBy = getArguments().getString("sortBy");
+                sortOrder = getArguments().getString("sortOrder", "desc"); // Mặc định là "desc"
+
+                // Cập nhật lại index để Dialog sắp xếp hiển thị đúng
+                if (sortBy.equals("salesCount")) {
+                    selectedSortIndex = 1; // "Bán chạy nhất"
+                } else if (sortBy.equals("rating")) {
+                    selectedSortIndex = 2; // "Đánh giá cao nhất"
+                } else if (sortBy.equals("price") && sortOrder.equals("asc")) {
+                    selectedSortIndex = 3; // "Giá: Thấp đến Cao"
+                } else if (sortBy.equals("price") && sortOrder.equals("desc")) {
+                    selectedSortIndex = 4; // "Giá: Cao đến Thấp"
+                } else {
+                    selectedSortIndex = 0; // "Mới nhất"
+                }
+            }
+            // --- KẾT THÚC THÊM MỚI ---
         }
 
         setupRecyclerView();
-        fetchBooks(currentQuery, true);
+        fetchBooks(currentQuery, true); // Gọi fetchBooks (lúc này đã có sortBy/sortOrder)
+        fetchCategories();
     }
 
     private void initViews(View view) {
@@ -105,16 +144,11 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
 
     private void setupToolbarAndMenu() {
         ((AppCompatActivity) requireActivity()).setSupportActionBar(toolbar);
-
-        // --- THÊM MỚI (PHẦN 1): Kích hoạt nút Back (Up) trên Toolbar ---
         ActionBar actionBar = ((AppCompatActivity) requireActivity()).getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setDisplayShowHomeEnabled(true);
-            // (Bạn có thể thêm icon tùy chỉnh ở đây nếu muốn, nếu không nó sẽ dùng icon mặc định)
-            // actionBar.setHomeAsUpIndicator(R.drawable.ic_arrow_back);
         }
-        // --- KẾT THÚC THÊM MỚI (PHẦN 1) ---
 
         MenuHost menuHost = requireActivity();
         menuHost.addMenuProvider(new MenuProvider() {
@@ -134,17 +168,19 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
 
             @Override
             public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-                // --- THÊM MỚI (PHẦN 2): Xử lý sự kiện bấm nút Back ---
-                // android.R.id.home là ID mặc định của nút Back trên Toolbar
-                if (menuItem.getItemId() == android.R.id.home) {
-                    // Dùng NavController để quay lại màn hình trước đó
+                int itemId = menuItem.getItemId();
+                if (itemId == android.R.id.home) {
                     Navigation.findNavController(requireView()).popBackStack();
                     return true;
                 }
-                // --- KẾT THÚC THÊM MỚI (PHẦN 2) ---
-
-                if (menuItem.getItemId() == R.id.action_filter) {
-                    showFilterDialog();
+                // (ID này phải khớp với menu/all_books_menu.xml)
+                else if (itemId == R.id.action_filter_sort) {
+                    showSortDialog();
+                    return true;
+                }
+                // (ID này phải khớp với menu/all_books_menu.xml)
+                else if (itemId == R.id.action_filter_category) {
+                    showCategoryFilterDialog();
                     return true;
                 }
                 return false;
@@ -153,7 +189,7 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
     }
 
     private void setupSearchViewListeners() {
-        // (Hàm này giữ nguyên)
+        // (Không thay đổi)
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -174,18 +210,27 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
         });
     }
 
-    private void showFilterDialog() {
-        // (Hàm này giữ nguyên)
+    private void showSortDialog() {
+        // (Không thay đổi so với lần trước)
         if (getContext() == null) return;
-        String[] options = {"Mặc định", "Giá: Thấp đến Cao", "Giá: Cao đến Thấp"};
+        String[] options = {
+                "Mới nhất",
+                "Bán chạy nhất",
+                "Đánh giá cao nhất",
+                "Giá: Thấp đến Cao",
+                "Giá: Cao đến Tháp"
+        };
+
         new AlertDialog.Builder(getContext())
                 .setTitle("Sắp xếp theo")
                 .setSingleChoiceItems(options, selectedSortIndex, (dialog, which) -> {
                     selectedSortIndex = which;
                     switch (which) {
-                        case 1: sortBy = "price"; sortOrder = "asc"; break;
-                        case 2: sortBy = "price"; sortOrder = "desc"; break;
-                        default: sortBy = null; sortOrder = null; break;
+                        case 0: sortBy = "createdAt"; sortOrder = "desc"; break;
+                        case 1: sortBy = "salesCount"; sortOrder = "desc"; break;
+                        case 2: sortBy = "rating"; sortOrder = "desc"; break;
+                        case 3: sortBy = "price"; sortOrder = "asc"; break;
+                        case 4: sortBy = "price"; sortOrder = "desc"; break;
                     }
                     fetchBooks(currentQuery, true);
                     dialog.dismiss();
@@ -194,14 +239,85 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
                 .show();
     }
 
+    // --- Tải Categories về Cache ---
+    private void fetchCategories() {
+        if (!categoryList.isEmpty()) {
+            return;
+        }
+        apiService.getAllCategories().enqueue(new Callback<List<Category>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Category>> call, @NonNull Response<List<Category>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    categoryList.clear();
+                    categoryList.addAll(response.body());
+                    Log.d(TAG, "Tải thành công " + categoryList.size() + " danh mục.");
+
+                    // --- THÊM MỚI ---
+                    // Sau khi tải xong, kiểm tra xem có cần set index mặc định không
+                    if (currentCategoryId != null) {
+                        for (int i = 0; i < categoryList.size(); i++) {
+                            if (categoryList.get(i).getId().equals(currentCategoryId)) {
+                                selectedCategoryIndex = i + 1; // +1 vì index 0 là "Tất cả"
+                                break;
+                            }
+                        }
+                    }
+                    // --- KẾT THÚC THÊM MỚI ---
+                } else {
+                    Log.e(TAG, "Lỗi khi tải danh mục: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<Category>> call, @NonNull Throwable t) {
+                Log.e(TAG, "Lỗi mạng khi tải danh mục: " + t.getMessage());
+            }
+        });
+    }
+
+    // --- Hiển thị Dialog Lọc Category ---
+    private void showCategoryFilterDialog() {
+        if (getContext() == null) return;
+
+        if (categoryList.isEmpty()) {
+            Toast.makeText(getContext(), "Đang tải danh mục, vui lòng thử lại...", Toast.LENGTH_SHORT).show();
+            fetchCategories();
+            return;
+        }
+
+        String[] categoryNames = new String[categoryList.size() + 1];
+        categoryNames[0] = "Tất cả danh mục";
+        for (int i = 0; i < categoryList.size(); i++) {
+            categoryNames[i + 1] = categoryList.get(i).getName(); // Dùng model Category
+        }
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Lọc theo danh mục")
+                .setSingleChoiceItems(categoryNames, selectedCategoryIndex, (dialog, which) -> {
+                    selectedCategoryIndex = which;
+
+                    if (which == 0) {
+                        currentCategoryId = null;
+                    } else {
+                        currentCategoryId = categoryList.get(which - 1).getId(); // Dùng model Category
+                    }
+
+                    fetchBooks(currentQuery, true);
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+
     private void performSearch(String query) {
-        // (Hàm này giữ nguyên)
+        // (Không thay đổi)
         currentQuery = query.trim();
         fetchBooks(currentQuery, true);
     }
 
     private void setupRecyclerView() {
-        // (Hàm này giữ nguyên)
+        // (Không thay đổi)
         adapter = new AllBooksAdapter(getContext(), this);
         rvAllBooks.setLayoutManager(new LinearLayoutManager(getContext()));
         rvAllBooks.setAdapter(adapter);
@@ -227,7 +343,7 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
     }
 
     private void fetchBooks(String query, boolean isReset) {
-        // (Hàm này giữ nguyên)
+        // (Không thay đổi)
         if (isLoading) return;
         isLoading = true;
         if (isReset) {
@@ -240,7 +356,8 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
             adapter.addLoadingFooter();
         }
 
-        apiService.getAllBooks(currentPage, PAGE_SIZE, query, sortBy, sortOrder)
+        // Gọi API với currentCategoryId
+        apiService.getAllBooks(currentPage, PAGE_SIZE, query, sortBy, sortOrder, currentCategoryId)
                 .enqueue(new Callback<BookListResponse>() {
                     @Override
                     public void onResponse(@NonNull Call<BookListResponse> call, @NonNull Response<BookListResponse> response) {
@@ -250,11 +367,8 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
 
                         if (response.isSuccessful() && response.body() != null) {
                             List<BookItem> books = response.body().getData();
-                            if (books.size() < PAGE_SIZE) {
-                                totalPages = currentPage;
-                            } else {
-                                totalPages = currentPage + 1;
-                            }
+
+                            totalPages = response.body().getTotalPages();
 
                             if (currentPage == 1) {
                                 adapter.setData(books);
@@ -290,11 +404,11 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
                 });
     }
 
-    // --- Implementation of AllBooksAdapter.OnBookClickListener ---
+    // --- Các hàm OnBookClickListener (Không thay đổi) ---
 
     @Override
     public void onBookClick(BookItem book) {
-        // (Hàm này giữ nguyên - đã sửa ở lần trước)
+        // (Không thay đổi)
         Bundle args = new Bundle();
         args.putString("bookId", book.getId());
         args.putString("title", book.getTitle());
@@ -315,13 +429,13 @@ public class AllBooksFragment extends Fragment implements AllBooksAdapter.OnBook
 
     @Override
     public void onCartClick(BookItem book) {
-        // (Hàm này giữ nguyên)
+        // (Không thay đổi)
         if (getContext() == null) return;
         showBranchesMap(book);
     }
 
     private void showBranchesMap(BookItem book) {
-        // (Hàm này giữ nguyên)
+        // (Không thay đổi)
         BranchesMapBottomSheet bottomSheet = BranchesMapBottomSheet.newInstance(
                 book.getId(),
                 book.getTitle(),

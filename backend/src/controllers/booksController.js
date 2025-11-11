@@ -101,52 +101,49 @@ const getAllBooks = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const { q, sortBy, order } = req.query;
+    // --- BẮT ĐẦU SỬA ĐỔI ---
+    // Thêm categoryId vào query
+    const { q, sortBy, order, categoryId } = req.query;
 
     console.log(
-      `Controller: Lấy tất cả sách - Trang ${page}, Giới hạn ${limit}, Query: ${q}`
+      `Controller: Lấy tất cả sách - Trang ${page}, Giới hạn ${limit}, Query: ${q}, Category: ${categoryId}`
     );
 
-    // 1. Xây dựng bộ lọc (filter) - SỬA LẠI LOGIC TÌM KIẾM
+    // 1. Xây dựng bộ lọc (filter)
     const filter = {};
 
     if (q) {
-      // Chuyển query của người dùng sang không dấu, chữ thường
       const searchQuery = removeAccents(q.toLowerCase());
-
-      // Tạo một biểu thức Regex để tìm kiếm
-      // 'i' = không phân biệt hoa thường (mặc dù chúng ta đã dùng toLowerCase)
       const searchRegex = new RegExp(searchQuery, "i");
-
-      // Tìm kiếm trên CẢ 3 trường không dấu
       filter.$or = [
         { title_unaccented: searchRegex },
         { author_unaccented: searchRegex },
         { description_unaccented: searchRegex },
       ];
-
-      // Bỏ logic $text cũ
-      // filter.$text = { $search: q };
     }
+
+    // THÊM: Nếu có categoryId, thêm vào bộ lọc
+    if (categoryId) {
+      filter.categoryId = categoryId;
+    }
+    // --- KẾT THÚC SỬA ĐỔI ---
 
     // 2. Xây dựng tùy chọn sắp xếp (sort)
     let sortOptions = {};
     if (sortBy && order) {
       sortOptions[sortBy] = order === "desc" ? -1 : 1;
     } else {
-      // Mặc định sắp xếp theo mới nhất
+      // Mặc định sắp xếp theo mới nhất (hoặc theo textScore nếu có tìm kiếm)
       sortOptions = { createdAt: "desc" };
     }
-    // Bỏ logic textScore
-    // const projection = q ? { score: { $meta: "textScore" } } : {};
 
     // 3. Thực thi query
     const [books, totalItems] = await Promise.all([
-      Book.find(filter) // Bỏ projection
+      Book.find(filter)
         .sort(sortOptions)
         .skip(skip)
         .limit(limit)
-        .populate("categoryId"),
+        .populate("categoryId"), // Bạn đã populate sẵn, rất tốt
       Book.countDocuments(filter),
     ]);
 
@@ -176,9 +173,13 @@ const getBooksByCategory = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
+    // --- BẮT ĐẦU SỬA ĐỔI ---
+    // Thêm sortBy và order
+    const { sortBy, order } = req.query;
     console.log(
-      `Controller: Lấy sách cho '${categorySlug}' - Trang ${page}, Giới hạn ${limit}`
+      `Controller: Lấy sách cho '${categorySlug}' - Trang ${page}, Sort: ${sortBy}:${order}`
     );
+    // --- KẾT THÚC SỬA ĐỔI ---
 
     const category = await Category.findOne({ slug: categorySlug });
     if (!category) {
@@ -187,9 +188,21 @@ const getBooksByCategory = async (req, res, next) => {
     }
 
     const filter = { categoryId: category._id };
+
+    // --- BẮT ĐẦU SỬA ĐỔI ---
+    // Xây dựng tùy chọn sắp xếp (sort)
+    let sortOptions = {};
+    if (sortBy && order) {
+      sortOptions[sortBy] = order === "desc" ? -1 : 1;
+    } else {
+      // Mặc định sắp xếp theo mới nhất
+      sortOptions = { createdAt: "desc" };
+    }
+    // --- KẾT THÚC SỬA ĐỔI ---
+
     const [books, totalItems] = await Promise.all([
       Book.find(filter)
-        .sort({ createdAt: "desc" })
+        .sort(sortOptions) // <-- Sử dụng sortOptions
         .skip(skip)
         .limit(limit)
         .populate("categoryId"),
@@ -199,7 +212,7 @@ const getBooksByCategory = async (req, res, next) => {
     const totalPages = Math.ceil(totalItems / limit);
 
     res.json({
-      category,
+      category, // Giữ lại để FE biết đang lọc category nào
       totalItems,
       totalPages,
       currentPage: page,

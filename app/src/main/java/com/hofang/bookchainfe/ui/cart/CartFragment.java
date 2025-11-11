@@ -214,8 +214,14 @@ public class CartFragment extends Fragment implements CartAdapter.CartItemListen
         book.setDiscount((int) bookItem.getDiscount());
         book.setCoverImage(bookItem.getCoverImage());
 
+        // --- THÊM 2 DÒNG BỊ THIẾU ---
+        book.setDescription(bookItem.getDescription());
+        book.setRating(bookItem.getRating());
+        // ----------------------------
+
         if (bookItem.getCategory() != null) {
             Category category = new Category();
+            // Sửa lại: Lấy 'name' từ đối tượng category
             category.setName(bookItem.getCategory().getName());
             book.setCategory(category);
         }
