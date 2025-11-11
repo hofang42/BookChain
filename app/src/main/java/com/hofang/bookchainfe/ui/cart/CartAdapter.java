@@ -1,5 +1,6 @@
 package com.hofang.bookchainfe.ui.cart;
 
+import android.util.Log; // Cần import
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +15,7 @@ import com.bumptech.glide.Glide;
 import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.model.CartItem;
 
-import java.text.NumberFormat; // Import
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -23,6 +24,9 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
     private List<CartItem> cartItems = new ArrayList<>();
     private CartItemListener listener;
 
+    /**
+     * Interface để xử lý các sự kiện click từ item
+     */
     public interface CartItemListener {
         void onQuantityChanged(CartItem item, int newQuantity);
         void onItemDeleted(CartItem item, int position);
@@ -30,15 +34,24 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         void onItemClicked(CartItem item);
     }
 
+    /**
+     * Constructor của Adapter
+     */
     public CartAdapter(CartItemListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Cập nhật danh sách items và thông báo cho adapter
+     */
     public void setCartItems(List<CartItem> items) {
         this.cartItems = items;
         notifyDataSetChanged();
     }
 
+    /**
+     * Lấy danh sách items hiện tại
+     */
     public List<CartItem> getCartItems() {
         return cartItems;
     }
@@ -62,6 +75,9 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         return cartItems.size();
     }
 
+    /**
+     * Lớp ViewHolder chứa logic hiển thị cho mỗi item
+     */
     class CartViewHolder extends RecyclerView.ViewHolder {
         private CheckBox cbSelect;
         private ImageView ivBookCover;
@@ -72,7 +88,6 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         private TextView btnIncrease;
         private ImageView btnDelete;
 
-        // Biến định dạng tiền tệ
         private NumberFormat currencyFormatter;
 
         public CartViewHolder(@NonNull View itemView) {
@@ -86,13 +101,30 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             btnIncrease = itemView.findViewById(R.id.btn_increase);
             btnDelete = itemView.findViewById(R.id.btn_delete);
 
-            // Khởi tạo định dạng tiền VN
             Locale localeVN = new Locale("vi", "VN");
             currencyFormatter = NumberFormat.getCurrencyInstance(localeVN);
         }
 
+        /**
+         * Gắn (bind) dữ liệu từ CartItem vào View
+         */
         public void bind(CartItem item) {
-            // Set checkbox state
+
+            // Fix (Bản vá): Kiểm tra sách null để tránh crash
+            if (item.getBook() == null) {
+                Log.e("CartAdapter", "Cart item book is null! Hiding item.");
+                // Ẩn view bị lỗi và thu nhỏ nó
+                itemView.setVisibility(View.GONE);
+                itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
+                return;
+            }
+            // Reset về trạng thái bình thường nếu item không null (dùng cho tái sử dụng)
+            itemView.setVisibility(View.VISIBLE);
+            itemView.setLayoutParams(new RecyclerView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
+
             cbSelect.setChecked(item.isSelected());
             cbSelect.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 item.setSelected(isChecked);
@@ -101,7 +133,6 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                 }
             });
 
-            // Load book cover
             if (item.getBook().getCoverImage() != null && !item.getBook().getCoverImage().isEmpty()) {
                 Glide.with(itemView.getContext())
                         .load(item.getBook().getCoverImage())
@@ -112,23 +143,18 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                 ivBookCover.setImageResource(R.drawable.ic_book_placeholder);
             }
 
-            // Set book title
             tvBookTitle.setText(item.getBook().getTitle());
 
-            // Set quantity
             tvQuantity.setText(String.valueOf(item.getQuantity()));
 
-            // Set price (subtotal for this item)
             tvPrice.setText(currencyFormatter.format(item.getSubtotal()));
 
-            // Decrease quantity
             btnDecrease.setOnClickListener(v -> {
                 int currentQuantity = item.getQuantity();
                 if (currentQuantity > 1) {
                     int newQuantity = currentQuantity - 1;
                     item.setQuantity(newQuantity);
                     tvQuantity.setText(String.valueOf(newQuantity));
-                    // Cập nhật giá theo format VN
                     tvPrice.setText(currencyFormatter.format(item.getSubtotal()));
                     if (listener != null) {
                         listener.onQuantityChanged(item, newQuantity);
@@ -136,27 +162,23 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                 }
             });
 
-            // Increase quantity
             btnIncrease.setOnClickListener(v -> {
                 int currentQuantity = item.getQuantity();
                 int newQuantity = currentQuantity + 1;
                 item.setQuantity(newQuantity);
                 tvQuantity.setText(String.valueOf(newQuantity));
-                // Cập nhật giá theo format VN
                 tvPrice.setText(currencyFormatter.format(item.getSubtotal()));
                 if (listener != null) {
                     listener.onQuantityChanged(item, newQuantity);
                 }
             });
 
-            // Delete item
             btnDelete.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onItemDeleted(item, getAdapterPosition());
                 }
             });
 
-            // Click on item to view book details
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onItemClicked(item);

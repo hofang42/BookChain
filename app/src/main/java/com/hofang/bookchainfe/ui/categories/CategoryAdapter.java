@@ -1,4 +1,5 @@
-package com.hofang.bookchainfe.ui.categories; // Đảm bảo đúng package
+// Trong file: com/hofang/bookchainfe/ui/categories/CategoryAdapter.java
+package com.hofang.bookchainfe.ui.categories;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,50 +9,75 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.hofang.bookchainfe.R; // Đảm bảo R được import đúng
 
-import java.util.ArrayList;
+import com.bumptech.glide.Glide;
+import com.hofang.bookchainfe.R;
+import com.hofang.bookchainfe.model.Category;
+
+import java.util.List;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
 
     private Context context;
-    private ArrayList<CategoryItem> categoryList;
+    private List<Category> categoryList;
 
-    // Constructor
-    public CategoryAdapter(Context context, ArrayList<CategoryItem> categoryList) {
+    // --- BƯỚC 1: ĐỊNH NGHĨA INTERFACE ---
+    private OnCategoryClickListener listener;
+
+    public interface OnCategoryClickListener {
+        void onCategoryClick(Category category);
+    }
+    // --- KẾT THÚC BƯỚC 1 ---
+
+    // --- BƯỚC 2: CẬP NHẬT CONSTRUCTOR ---
+    public CategoryAdapter(Context context, List<Category> categoryList, OnCategoryClickListener listener) {
         this.context = context;
         this.categoryList = categoryList;
+        this.listener = listener; // <-- Gán listener
     }
+    // --- KẾT THÚC BƯỚC 2 ---
 
     @NonNull
     @Override
     public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflate (tải) layout của một item
         View view = LayoutInflater.from(context).inflate(R.layout.categories_item_category_card, parent, false);
         return new CategoryViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
-        // Lấy dữ liệu từ list tại vị trí 'position'
-        CategoryItem currentItem = categoryList.get(position);
-
-        // Gán dữ liệu vào các view
+        Category currentItem = categoryList.get(position);
         holder.tvCategoryName.setText(currentItem.getName());
-        holder.ivCategoryImage.setImageResource(currentItem.getImageResId());
 
-        // Bạn có thể set sự kiện click ở đây
-        // holder.itemView.setOnClickListener(v -> {
-        //     // Xử lý khi nhấn vào category currentItem.getName()
-        // });
+        Glide.with(context)
+                .load(currentItem.getImageUrl())
+                .placeholder(R.drawable.ic_book_placeholder)
+                .error(R.drawable.ic_book_placeholder)
+                .into(holder.ivCategoryImage);
+
+        // --- BƯỚC 3: GỌI LISTENER KHI CLICK ---
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onCategoryClick(currentItem); // <-- Trả về category đã click
+            }
+        });
+        // --- KẾT THÚC BƯỚC 3 ---
     }
 
     @Override
     public int getItemCount() {
-        return categoryList.size(); // Trả về số lượng item trong list
+        return categoryList.size();
     }
 
-    // Lớp ViewHolder để giữ các tham chiếu đến View
+    public void setData(List<Category> newCategories) {
+        if (newCategories != null) {
+            this.categoryList.clear();
+            this.categoryList.addAll(newCategories);
+            notifyDataSetChanged();
+        }
+    }
+
+    // ViewHolder (Không đổi)
     public static class CategoryViewHolder extends RecyclerView.ViewHolder {
         public ImageView ivCategoryImage;
         public TextView tvCategoryName;

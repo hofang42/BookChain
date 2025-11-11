@@ -247,18 +247,39 @@ public class HomeFragment extends Fragment {
     // --- HẾT CÁC HÀM GỌI API ---
 
     private void setupHeaders() {
+        // Lấy NavController một lần
+        NavController navController = NavHostFragment.findNavController(this);
+
+        // --- 1. Top Books ---
         ((TextView) headerTopBooks.findViewById(R.id.tv_section_title)).setText("Top Books");
+        headerTopBooks.findViewById(R.id.tv_section_see_more).setOnClickListener(v -> {
+            // Tạo Bundle để gửi dữ liệu
+            Bundle args = new Bundle();
+            args.putString("sortBy", "salesCount"); // "Bán chạy nhất"
+            args.putString("sortOrder", "desc");
+
+            // Điều hướng
+            navController.navigate(R.id.action_nav_home_to_allBooksFragment, args);
+        });
+
+        // --- 2. Upcoming Books ---
         ((TextView) headerUpcomingBooks.findViewById(R.id.tv_section_title)).setText("Upcoming Books");
+        headerUpcomingBooks.findViewById(R.id.tv_section_see_more).setOnClickListener(v -> {
+            // "Upcoming" là dữ liệu hard-code, không có trang "See more" tương ứng
+            Toast.makeText(getContext(), "See more for Upcoming Books", Toast.LENGTH_SHORT).show();
+        });
+
+        // --- 3. Latest Books ---
         ((TextView) headerLatestBooks.findViewById(R.id.tv_section_title)).setText("Latest Books");
+        headerLatestBooks.findViewById(R.id.tv_section_see_more).setOnClickListener(v -> {
+            // Tạo Bundle để gửi dữ liệu
+            Bundle args = new Bundle();
+            args.putString("sortBy", "createdAt"); // "Mới nhất"
+            args.putString("sortOrder", "desc");
 
-        View.OnClickListener seeMoreListener = v -> {
-            String title = ((TextView) ((View) v.getParent()).findViewById(R.id.tv_section_title)).getText().toString();
-            Toast.makeText(getContext(), "See more for " + title, Toast.LENGTH_SHORT).show();
-        };
-
-        headerTopBooks.findViewById(R.id.tv_section_see_more).setOnClickListener(seeMoreListener);
-        headerUpcomingBooks.findViewById(R.id.tv_section_see_more).setOnClickListener(seeMoreListener);
-        headerLatestBooks.findViewById(R.id.tv_section_see_more).setOnClickListener(seeMoreListener);
+            // Điều hướng
+            navController.navigate(R.id.action_nav_home_to_allBooksFragment, args);
+        });
     }
 
     // --- CÁC HÀM MỚI CHO CHỨC NĂNG SEARCH ---
@@ -307,10 +328,8 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onSeeAllClick(String query) {
-                String currentQuery = etSearchBar.getText().toString().trim();
-
                 Bundle args = new Bundle();
-                args.putString("searchQuery", currentQuery);
+                args.putString("searchQuery", "");
 
                 NavController navController = NavHostFragment.findNavController(HomeFragment.this);
                 navController.navigate(R.id.action_nav_home_to_allBooksFragment, args);

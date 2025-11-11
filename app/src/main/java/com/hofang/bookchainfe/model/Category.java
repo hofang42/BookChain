@@ -11,6 +11,9 @@ public class Category {
     
     @SerializedName("description")
     private String description;
+
+    @SerializedName("imageUrl")
+    private String imageUrl;
     
     public Category() {
     }
@@ -29,4 +32,8 @@ public class Category {
     
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    // --- THÊM GETTER NÀY ---
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

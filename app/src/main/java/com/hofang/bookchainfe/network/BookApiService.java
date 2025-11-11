@@ -1,9 +1,11 @@
+// package com.hofang.bookchainfe.network;
 package com.hofang.bookchainfe.network;
 
 import com.hofang.bookchainfe.model.BranchesResponse;
 import com.hofang.bookchainfe.model.UploadResponse;
 import com.hofang.bookchainfe.ui.home.BookItem;
 import com.hofang.bookchainfe.model.BookListResponse;
+import com.hofang.bookchainfe.model.Category;
 
 
 import java.util.List;
@@ -19,8 +21,8 @@ import retrofit2.http.Query;
 
 public interface BookApiService {
 
-    // BASE_URL đã là "http://10.0.2.2:3000/"
-    // Nên chúng ta chỉ cần đường dẫn tương đối
+    // (Các hàm getBestDeals, getTopBooks, getLatestBooks, getBookById, searchBooks giữ nguyên)
+    // ...
 
     @GET("api/books/best-deals")
     Call<List<BookItem>> getBestDeals();
@@ -37,14 +39,23 @@ public interface BookApiService {
     @GET("api/books/search")
     Call<BookListResponse> searchBooks(@Query("q") String query);
 
+
+    // --- BẮT ĐẦU SỬA ĐỔI ---
     @GET("api/books")
     Call<BookListResponse> getAllBooks(
             @Query("page") int page,
             @Query("limit") int limit,
             @Query("q") String query,
             @Query("sortBy") String sortBy,
-            @Query("order") String order
+            @Query("order") String order,
+            @Query("categoryId") String categoryId // <-- THÊM THAM SỐ NÀY
     );
+
+    // --- THÊM HÀM MỚI ---
+    @GET("api/categories")
+    Call<List<Category>> getAllCategories();
+    // --- KẾT THÚC SỬA ĐỔI ---
+
 
     @Multipart
     @POST("api/books/upload")
@@ -52,14 +63,6 @@ public interface BookApiService {
             @Part MultipartBody.Part coverImage
     );
 
-    /**
-     * Get branches that have a specific book in stock
-     * @param bookId The ID of the book
-     * @param lat User's latitude (optional)
-     * @param lng User's longitude (optional)
-     * @param limit Maximum number of branches to return (default: 10)
-     * @return BranchesResponse with list of branches sorted by distance
-     */
     @GET("api/books/{id}/branches")
     Call<BranchesResponse> getBranchesWithBook(
             @Path("id") String bookId,
@@ -67,6 +70,4 @@ public interface BookApiService {
             @Query("lng") Double lng,
             @Query("limit") Integer limit
     );
-
-    // (Bạn có thể thêm các API sách khác vào đây)
 }

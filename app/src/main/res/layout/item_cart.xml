@@ -23,8 +23,8 @@
             android:id="@+id/cb_select"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:background="#FFFFFF"
-            android:button="@drawable/checkbox_selector"
+            android:background="@drawable/custom_checkbox_selector"
+            android:button="@null"
             android:checked="true" />
 
         <!-- Book Cover -->

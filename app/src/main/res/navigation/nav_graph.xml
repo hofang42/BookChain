@@ -164,7 +164,17 @@
         android:id="@+id/nav_categories"
         android:name="com.hofang.bookchainfe.ui.categories.CategoriesFragment"
         android:label="Categories"
-        tools:layout="@layout/fragment_categories" />
+        tools:layout="@layout/fragment_categories">
+
+        <action
+            android:id="@+id/action_categoriesFragment_to_allBooksFragment"
+            app:destination="@id/allBooksFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/nav_cart"
@@ -331,6 +341,28 @@
             app:argType="string"
             app:nullable="true"
             android:defaultValue="" />
+        <argument
+            android:name="categoryId"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+
+        <argument
+            android:name="categoryName"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+
+        <argument
+            android:name="sortBy"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="sortOrder"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
 
         <action
             android:id="@+id/action_allBooks_to_book_detail"
