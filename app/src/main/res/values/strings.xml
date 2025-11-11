@@ -13,4 +13,16 @@
     <!-- Common UI -->
     <string name="back">Back</string>
     <string name="home_message">Messages</string>
+    
+    <!-- AI Chatbot -->
+    <string name="chatbot">AI Chatbot</string>
+    <string name="chatbot_assistant">Trợ lý AI BookChain</string>
+    <string name="type_message">Nhập tin nhắn...</string>
+    <string name="send">Gửi</string>
+    <string name="close">Đóng</string>
+    <string name="attach_image">Đính kèm ảnh</string>
+    <string name="image_preview">Xem trước ảnh</string>
+    <string name="remove_image">Xóa ảnh</string>
+    <string name="image_message">Tin nhắn hình ảnh</string>
+    <string name="ai_greeting">Xin chào! Tôi là trợ lý AI của BookChain. Tôi có thể giúp gì cho bạn?</string>
 </resources>

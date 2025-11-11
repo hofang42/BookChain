@@ -37,7 +37,9 @@ import com.hofang.bookchainfe.ui.message.MessageActivity;
 import com.hofang.bookchainfe.network.ApiConfig;
 import com.hofang.bookchainfe.network.BookApiService;
 import com.hofang.bookchainfe.model.BookListResponse;
+import com.hofang.bookchainfe.model.ChatContext;
 import com.hofang.bookchainfe.ui.book.AllBooksFragment;
+import com.hofang.bookchainfe.ui.chatbot.FloatingChatButtonHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,6 +114,12 @@ public class HomeFragment extends Fragment {
         // 4. Setup các thành phần khác
         setupHeaders();
         setupListeners();
+        
+        // 5. Add floating chat button for Home screen
+        // Use parent container instead of fragment view (which is NestedScrollView)
+        ViewGroup parentView = (ViewGroup) requireActivity().findViewById(android.R.id.content);
+        ChatContext chatContext = new ChatContext("Trang chủ", null, null);
+        FloatingChatButtonHelper.addFloatingChatButton(requireActivity(), parentView, chatContext);
     }
 
     private void initViews(View view) {

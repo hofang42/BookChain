@@ -8,6 +8,7 @@ const categoryRoutes = require("./routes/categories");
 const branchesRoutes = require("./routes/branches");
 const authRoutes = require("./routes/auth");
 const chatRoutes = require("./routes/chat");
+const chatAIRoutes = require("./routes/chatAI");
 const cors = require("cors");
 const { errorHandler } = require("./middleware/errorHandler");
 const connectDB = require("./services/db");
@@ -30,7 +31,8 @@ app.post(
 );
 
 // --- BƯỚC 3: Mới đến các middleware chung ---
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Tăng limit lên 50MB cho ảnh base64
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
 // --- BƯỚC 4: Các routes còn lại ---
@@ -41,6 +43,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/books", booksRoutes);
 app.use("/api/branches", branchesRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/chatai", chatAIRoutes);
 app.use("/api/addresses", addressesRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);

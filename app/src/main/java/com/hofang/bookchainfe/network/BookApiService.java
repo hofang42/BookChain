@@ -13,6 +13,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface BookApiService {
@@ -28,6 +29,9 @@ public interface BookApiService {
 
     @GET("api/books/latest-books")
     Call<List<BookItem>> getLatestBooks();
+
+    @GET("api/books/{id}")
+    Call<BookItem> getBookById(@Path("id") String bookId);
 
     @GET("api/books/search")
     Call<BookListResponse> searchBooks(@Query("q") String query);
