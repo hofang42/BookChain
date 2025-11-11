@@ -741,6 +741,7 @@ const updateProfile = async (req, res, next) => {
       email: user.email,
       fullName: user.fullName,
       phone: user.phone,
+      avatar: user.avatar,
       role: user.role,
       status: user.status,
       lastLogin: user.lastLogin,
@@ -751,6 +752,37 @@ const updateProfile = async (req, res, next) => {
       success: true,
       message: "Profile updated successfully",
       data: { user: userData }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Upload user avatar
+ * POST /api/auth/avatar
+ */
+const uploadAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "No image file provided"
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    // Update avatar URL
+    user.avatar = req.file.path; // Cloudinary URL
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Avatar uploaded successfully",
+      data: {
+        avatar: user.avatar
+      }
     });
   } catch (error) {
     next(error);
@@ -865,6 +897,7 @@ module.exports = {
   resetPassword,
   changePassword,
   updateProfile,
+  uploadAvatar,
   logout,
   googleSignIn
 };

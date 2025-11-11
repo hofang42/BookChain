@@ -14,6 +14,7 @@ const {
   resetPassword,
   changePassword,
   updateProfile,
+  uploadAvatar,
   logout
 } = require("../controllers/authController");
 
@@ -148,11 +149,11 @@ router.post("/verify-password-reset-otp", verifyPasswordResetOTP);
 router.post("/reset-password", validateResetPassword, resetPassword);
 
 /**
- * @route   POST /api/auth/change-password
+ * @route   PUT /api/auth/change-password
  * @desc    Change password (for authenticated users)
  * @access  Private
  */
-router.post("/change-password", authenticate, validateChangePassword, changePassword);
+router.put("/change-password", authenticate, validateChangePassword, changePassword);
 
 /**
  * @route   PUT /api/auth/profile
@@ -160,6 +161,14 @@ router.post("/change-password", authenticate, validateChangePassword, changePass
  * @access  Private
  */
 router.put("/profile", authenticate, validateUpdateProfile, updateProfile);
+
+/**
+ * @route   POST /api/auth/avatar
+ * @desc    Upload user avatar
+ * @access  Private
+ */
+const uploadAvatarMiddleware = require("../config/avatarUpload");
+router.post("/avatar", authenticate, uploadAvatarMiddleware.single("avatar"), uploadAvatar);
 
 /**
  * @route   POST /api/auth/logout

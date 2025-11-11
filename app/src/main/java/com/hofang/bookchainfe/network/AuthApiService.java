@@ -2,6 +2,7 @@ package com.hofang.bookchainfe.network;
 
 import com.hofang.bookchainfe.model.ApiResponse;
 import com.hofang.bookchainfe.model.AuthResponse;
+import com.hofang.bookchainfe.model.ChangePasswordRequest;
 import com.hofang.bookchainfe.model.GoogleSignInRequest;
 import com.hofang.bookchainfe.model.LoginRequest;
 import com.hofang.bookchainfe.model.PasswordResetOTPResponse;
@@ -9,15 +10,19 @@ import com.hofang.bookchainfe.model.RegisterRequest;
 import com.hofang.bookchainfe.model.ResetPasswordRequest;
 import com.hofang.bookchainfe.model.SendOTPRequest;
 import com.hofang.bookchainfe.model.UpdateProfileRequest;
+import com.hofang.bookchainfe.model.UploadResponse;
 import com.hofang.bookchainfe.model.UserProfileResponse;
 import com.hofang.bookchainfe.model.VerifyOTPRequest;
 
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Part;
 
 public interface AuthApiService {
     
@@ -55,5 +60,18 @@ public interface AuthApiService {
     Call<ApiResponse<UserProfileResponse>> updateProfile(
             @Header("Authorization") String token,
             @Body UpdateProfileRequest request
+    );
+
+    @PUT("api/auth/change-password")
+    Call<ApiResponse<String>> changePassword(
+            @Header("Authorization") String token,
+            @Body ChangePasswordRequest request
+    );
+
+    @Multipart
+    @POST("api/auth/avatar")
+    Call<ApiResponse<UploadResponse>> uploadAvatar(
+            @Header("Authorization") String token,
+            @Part MultipartBody.Part avatar
     );
 }

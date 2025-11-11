@@ -11,6 +11,7 @@ public class TokenManager {
     private static final String KEY_EMAIL = "email";
     private static final String KEY_FULL_NAME = "full_name";
     private static final String KEY_PHONE = "phone";
+    private static final String KEY_AVATAR = "avatar";
     private static final String KEY_IS_LOGGED_IN = "is_logged_in";
 
     private SharedPreferences sharedPreferences;
@@ -59,10 +60,20 @@ public class TokenManager {
         return sharedPreferences.getString(KEY_PHONE, null);
     }
 
+    public String getAvatar() {
+        return sharedPreferences.getString(KEY_AVATAR, null);
+    }
+
     // Update profile info (for edit profile)
     public void updateProfile(String fullName, String phone) {
         editor.putString(KEY_FULL_NAME, fullName);
         editor.putString(KEY_PHONE, phone);
+        editor.apply();
+    }
+
+    // Save avatar
+    public void saveAvatar(String avatar) {
+        editor.putString(KEY_AVATAR, avatar);
         editor.apply();
     }
 

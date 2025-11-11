@@ -1,11 +1,14 @@
 package com.hofang.bookchainfe.ui.account;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -13,6 +16,8 @@ import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.hofang.bookchainfe.R;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,6 +26,12 @@ import android.widget.TextView;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.hofang.bookchainfe.model.ApiResponse;
+import com.hofang.bookchainfe.model.UploadResponse;
+import com.hofang.bookchainfe.network.AuthApiService;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.hofang.bookchainfe.network.ApiConfig;
@@ -28,6 +39,8 @@ import com.hofang.bookchainfe.network.SocketService;
 import com.hofang.bookchainfe.utils.TokenManager;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -35,10 +48,15 @@ import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import com.google.android.material.card.MaterialCardView;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AccountFragment extends Fragment {
 
     private TokenManager tokenManager;
+    private ActivityResultLauncher<String> imagePickerLauncher;
+    private ImageView avatarImageView;
 
     public AccountFragment() {
         // Required empty public constructor
@@ -76,10 +94,28 @@ public class AccountFragment extends Fragment {
         final TextView tvEmail = view.findViewById(R.id.value_email);
         final TextView tvPassword = view.findViewById(R.id.value_password);
         final TextView tvPhone = view.findViewById(R.id.value_phone);
-        final ImageView avatar = view.findViewById(R.id.avatar);
+        avatarImageView = view.findViewById(R.id.avatar);
 
         // Display user info from stored session (will refresh when coming back from edit)
         displayUserInfo(tvName, tvEmail, tvPassword, tvPhone);
+
+        // Setup image picker launcher
+        imagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetContent(),
+            uri -> {
+                if (uri != null) {
+                    uploadAvatar(uri);
+                }
+            }
+        );
+
+        // Avatar click listener
+        view.findViewById(R.id.avatar_container).setOnClickListener(v -> {
+            imagePickerLauncher.launch("image/*");
+        });
+
+        // Load existing avatar if available
+        loadAvatar();
 
         // Add Edit button functionality
         Button btnEdit = view.findViewById(R.id.btn_edit);
@@ -110,6 +146,11 @@ public class AccountFragment extends Fragment {
                 Log.e("AccountFragment", "Navigation to OrderHistory failed. Did you add it to nav_graph?", e);
                 Toast.makeText(getContext(), "Feature coming soon!", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        // Add Change Password functionality
+        view.findViewById(R.id.card_change_password).setOnClickListener(v -> {
+            Navigation.findNavController(view).navigate(R.id.action_accountFragment_to_changePasswordFragment);
         });
 
         // Fetch profile from backend and populate UI (if needed for additional data)
@@ -234,5 +275,108 @@ public class AccountFragment extends Fragment {
         }
         br.close();
         return sb.toString();
+    }
+
+    private void loadAvatar() {
+        String avatarUrl = tokenManager.getAvatar();
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            Glide.with(this)
+                .load(avatarUrl)
+                .circleCrop()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.ic_person_white)
+                .error(R.drawable.ic_person_white)
+                .into(avatarImageView);
+        }
+    }
+
+    private void uploadAvatar(Uri imageUri) {
+        try {
+            // Show loading toast
+            Toast.makeText(requireContext(), "Uploading avatar...", Toast.LENGTH_SHORT).show();
+
+            // Convert URI to File
+            File file = createTempFileFromUri(imageUri);
+
+            RequestBody requestFile = RequestBody.create(
+                MediaType.parse("image/*"),
+                file
+            );
+
+            MultipartBody.Part body = MultipartBody.Part.createFormData(
+                "avatar",
+                file.getName(),
+                requestFile
+            );
+
+            String token = tokenManager.getToken();
+            String authHeader = "Bearer " + token;
+
+            AuthApiService apiService = ApiConfig.getRetrofit().create(AuthApiService.class);
+            Call<ApiResponse<UploadResponse>> call = apiService.uploadAvatar(authHeader, body);
+
+            call.enqueue(new Callback<ApiResponse<UploadResponse>>() {
+                @Override
+                public void onResponse(@NonNull Call<ApiResponse<UploadResponse>> call,
+                                       @NonNull Response<ApiResponse<UploadResponse>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        ApiResponse<UploadResponse> apiResponse = response.body();
+                        if (apiResponse.isSuccess() && apiResponse.getData() != null) {
+                            String avatarUrl = apiResponse.getData().getAvatar();
+
+                            // Save to TokenManager
+                            tokenManager.saveAvatar(avatarUrl);
+
+                            // Load image with Glide
+                            Glide.with(AccountFragment.this)
+                                .load(avatarUrl)
+                                .circleCrop()
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .placeholder(R.drawable.ic_person_white)
+                                .into(avatarImageView);
+
+                            Toast.makeText(requireContext(), "Avatar updated successfully", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(requireContext(), "Failed to upload avatar", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(requireContext(), "Failed to upload avatar", Toast.LENGTH_SHORT).show();
+                        Log.e("AccountFragment", "Upload failed: " + response.code());
+                    }
+
+                    // Delete temp file
+                    file.delete();
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ApiResponse<UploadResponse>> call, @NonNull Throwable t) {
+                    Toast.makeText(requireContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("AccountFragment", "Network error", t);
+                    file.delete();
+                }
+            });
+
+        } catch (Exception e) {
+            Log.e("AccountFragment", "Error uploading avatar", e);
+            Toast.makeText(requireContext(), "Error preparing image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private File createTempFileFromUri(Uri uri) throws Exception {
+        InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+        File tempFile = File.createTempFile("avatar", ".jpg", requireContext().getCacheDir());
+
+        FileOutputStream outputStream = new FileOutputStream(tempFile);
+        byte[] buffer = new byte[1024];
+        int length;
+
+        while ((length = inputStream.read(buffer)) > 0) {
+            outputStream.write(buffer, 0, length);
+        }
+
+        outputStream.close();
+        inputStream.close();
+
+        return tempFile;
     }
 }

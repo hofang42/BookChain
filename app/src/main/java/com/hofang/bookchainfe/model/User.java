@@ -17,7 +17,10 @@ public class User {
     
     @SerializedName("phone")
     private String phone;
-    
+
+    @SerializedName("avatar")
+    private String avatar;
+
     @SerializedName("role")
     private String role;
     
@@ -76,6 +79,14 @@ public class User {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     public String getRole() {
