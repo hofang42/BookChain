@@ -50,10 +50,14 @@
                 <!-- Removed dummy top spacer to align avatar precisely under toolbar -->
 
                 <FrameLayout
+                    android:id="@+id/avatar_container"
                     android:layout_width="@dimen/account_avatar_size"
                     android:layout_height="@dimen/account_avatar_size"
                     android:layout_gravity="center"
-                    android:layout_marginTop="0dp">
+                    android:layout_marginTop="0dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackgroundBorderless">
 
                     <View
                         android:layout_width="match_parent"
@@ -62,12 +66,25 @@
 
                     <ImageView
                         android:id="@+id/avatar"
-                        android:layout_width="@dimen/account_avatar_icon_size"
-                        android:layout_height="@dimen/account_avatar_icon_size"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
                         android:layout_gravity="center"
                         android:contentDescription="profile avatar"
                         android:src="@drawable/ic_person_white"
+                        android:scaleType="centerCrop"
                         app:tint="@null" />
+
+                    <!-- Edit Icon Overlay -->
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="bottom|end"
+                        android:layout_margin="8dp"
+                        android:src="@drawable/ic_camera"
+                        android:background="@drawable/circle_black"
+                        android:padding="6dp"
+                        app:tint="@color/white"
+                        android:contentDescription="edit avatar" />
 
                 </FrameLayout>
             </FrameLayout>
@@ -290,6 +307,44 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Order History"
+                            android:textSize="16sp"
+                            android:textColor="@color/accent_black"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            app:tint="@color/accent_black" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_change_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/account_card_height"
+                    android:layout_marginTop="@dimen/account_card_margin_top"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/account_card_gray"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Change Password"
                             android:textSize="16sp"
                             android:textColor="@color/accent_black"
                             android:textStyle="bold" />

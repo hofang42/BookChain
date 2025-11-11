@@ -4,28 +4,33 @@ import com.google.gson.annotations.SerializedName;
 
 public class UploadResponse {
 
-    // Giả sử API trả về một trường "message"
+    @SerializedName("avatar")
+    private String avatar;
+
     @SerializedName("message")
     private String message;
 
-    // Giả sử API trả về một trường "success"
     @SerializedName("success")
     private boolean success;
 
-    // --- Getters ---
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 
     public String getMessage() {
         return message;
     }
 
-    public boolean isSuccess() {
-        return success;
-    }
-
-    // --- Setters (Nếu cần) ---
-
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public boolean isSuccess() {
+        return success;
     }
 
     public void setSuccess(boolean success) {
