@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
@@ -15,6 +17,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Add API key from local.properties
+        val localProperties = project.rootProject.file("local.properties")
+        val properties = Properties()
+        if (localProperties.exists()) {
+            properties.load(localProperties.inputStream())
+        }
+        
+        manifestPlaceholders["MAPS_API_KEY"] = properties.getProperty("MAPS_API_KEY", "")
     }
 
     buildTypes {
@@ -86,6 +97,12 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.android.gms:play-services-auth:21.2.0")
+    
+    // Google Play Services - Location (for getting user location)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    
+    // Google Maps
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
 
     implementation("com.google.firebase:firebase-storage")
     implementation ("com.github.bumptech.glide:glide:4.16.0")
