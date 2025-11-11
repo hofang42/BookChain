@@ -6,6 +6,7 @@ const usersRoutes = require("./routes/users");
 const booksRoutes = require("./routes/books");
 const categoryRoutes = require("./routes/categories");
 const branchesRoutes = require("./routes/branches");
+const inventoryRoutes = require("./routes/inventory");
 const authRoutes = require("./routes/auth");
 const chatRoutes = require("./routes/chat");
 const chatAIRoutes = require("./routes/chatAI");
@@ -42,6 +43,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/books", booksRoutes);
 app.use("/api/branches", branchesRoutes);
+app.use("/api/inventory", inventoryRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/chatai", chatAIRoutes);
 app.use("/api/addresses", addressesRoutes);
@@ -58,13 +60,13 @@ const PORT = process.env.PORT || 3000;
 (async () => {
   try {
     await connectDB();
-    
+
     // Create HTTP server
     const server = http.createServer(app);
-    
+
     // Initialize Socket.IO
     initializeSocket(server);
-    
+
     server.listen(PORT, () =>
       console.log(`Server listening on http://localhost:${PORT}`)
     );

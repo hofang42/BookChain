@@ -10,6 +10,7 @@ const {
   getBooksByCategory,
   getBookById,
   uploadBookCover,
+  getBranchesWithBook,
 } = require("../controllers/booksController");
 
 router.get("/best-deals", getBestDeals);
@@ -23,6 +24,7 @@ router.get("/search", getAllBooks);
 router.get("/category/:categorySlug", getBooksByCategory);
 
 router.get("/:id", getBookById);
+router.get("/:id/branches", getBranchesWithBook);
 
 router.post("/upload", uploadCloud.single("coverImage"), uploadBookCover);
 

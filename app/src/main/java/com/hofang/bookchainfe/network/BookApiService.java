@@ -1,5 +1,6 @@
 package com.hofang.bookchainfe.network;
 
+import com.hofang.bookchainfe.model.BranchesResponse;
 import com.hofang.bookchainfe.model.UploadResponse;
 import com.hofang.bookchainfe.ui.home.BookItem;
 import com.hofang.bookchainfe.model.BookListResponse;
@@ -49,6 +50,22 @@ public interface BookApiService {
     @POST("api/books/upload")
     Call<UploadResponse> uploadBookCover(
             @Part MultipartBody.Part coverImage
+    );
+
+    /**
+     * Get branches that have a specific book in stock
+     * @param bookId The ID of the book
+     * @param lat User's latitude (optional)
+     * @param lng User's longitude (optional)
+     * @param limit Maximum number of branches to return (default: 10)
+     * @return BranchesResponse with list of branches sorted by distance
+     */
+    @GET("api/books/{id}/branches")
+    Call<BranchesResponse> getBranchesWithBook(
+            @Path("id") String bookId,
+            @Query("lat") Double lat,
+            @Query("lng") Double lng,
+            @Query("limit") Integer limit
     );
 
     // (Bạn có thể thêm các API sách khác vào đây)

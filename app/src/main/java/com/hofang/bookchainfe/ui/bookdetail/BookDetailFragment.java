@@ -54,6 +54,7 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
     private TextView tvPrice;
     private TextView tvDescription;
     private Button btnAddToCart;
+    private Button btnViewBranches;
     private ImageButton btnBack;
     private ImageButton btnCart;
     
@@ -121,6 +122,7 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
         tvPrice = view.findViewById(R.id.tv_price);
         tvDescription = view.findViewById(R.id.tv_description);
         btnAddToCart = view.findViewById(R.id.btn_add_to_cart);
+        btnViewBranches = view.findViewById(R.id.btn_view_branches);
         btnBack = view.findViewById(R.id.btn_back);
         btnCart = view.findViewById(R.id.btn_cart);
         
@@ -217,6 +219,14 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
                 addToCart();
             }
         });
+
+        btnViewBranches.setOnClickListener(v -> {
+            if (book != null && book.getId() != null) {
+                showBranchesMap();
+            } else {
+                Toast.makeText(requireContext(), "Book information not available", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void addToCart() {
@@ -259,6 +269,16 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
             });
         });
         bottomSheet.show(getParentFragmentManager(), "AddToCartBottomSheet");
+    }
+    
+    private void showBranchesMap() {
+        BranchesMapBottomSheet bottomSheet = BranchesMapBottomSheet.newInstance(
+            book.getId(),
+            book.getTitle(),
+            book.getAuthor(),
+            book.getCoverImage()
+        );
+        bottomSheet.show(getParentFragmentManager(), "BranchesMapBottomSheet");
     }
     
     private void setupReviews() {

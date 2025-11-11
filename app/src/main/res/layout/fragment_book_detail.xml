@@ -190,16 +190,33 @@
             android:id="@+id/btn_add_to_cart"
             android:layout_width="0dp"
             android:layout_height="56dp"
-            android:layout_marginStart="32dp"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="24dp"
-            android:layout_marginEnd="32dp"
+            android:layout_marginEnd="8dp"
             android:background="@drawable/button_primary"
             android:text="Add to Cart"
             android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btn_view_branches"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_book_info" />
+
+        <!-- View Branches Button -->
+        <Button
+            android:id="@+id/btn_view_branches"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/button_secondary"
+            android:text="📍 Branches"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/btn_add_to_cart"
             app:layout_constraintTop_toBottomOf="@id/layout_book_info" />
 
         <!-- Description Section -->
@@ -214,7 +231,7 @@
             android:textColor="@android:color/black"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@id/btn_add_to_cart" />
+            app:layout_constraintTop_toBottomOf="@id/btn_view_branches" />
 
         <TextView
             android:id="@+id/tv_description"
