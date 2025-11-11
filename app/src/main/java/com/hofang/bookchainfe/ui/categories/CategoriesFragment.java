@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton; // <-- THÊM IMPORT NÀY
 import com.hofang.bookchainfe.R; // Đảm bảo R được import đúng
+import com.hofang.bookchainfe.model.ChatContext;
+import com.hofang.bookchainfe.ui.chatbot.FloatingChatButtonHelper;
 
 import java.util.ArrayList;
 
@@ -66,6 +68,11 @@ public class CategoriesFragment extends Fragment {
                 showFilterBottomSheet();
             }
         });
+        
+        // Add floating chat button for Categories screen
+        ViewGroup parentView = (ViewGroup) requireActivity().findViewById(android.R.id.content);
+        ChatContext chatContext = new ChatContext("Danh mục sách", null, null);
+        FloatingChatButtonHelper.addFloatingChatButton(requireActivity(), parentView, chatContext);
     }
 
     // 3. HÀM MỚI ĐỂ HIỂN THỊ BOTTOM SHEET

@@ -31,6 +31,9 @@ public interface BookApiService {
     @GET("api/books/latest-books")
     Call<List<BookItem>> getLatestBooks();
 
+    @GET("api/books/{id}")
+    Call<BookItem> getBookById(@Path("id") String bookId);
+
     @GET("api/books/search")
     Call<BookListResponse> searchBooks(@Query("q") String query);
 

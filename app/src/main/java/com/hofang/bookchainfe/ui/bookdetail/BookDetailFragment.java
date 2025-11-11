@@ -26,6 +26,7 @@ import com.hofang.bookchainfe.R;
 import com.hofang.bookchainfe.model.ApiResponse;
 import com.hofang.bookchainfe.model.Book;
 import com.hofang.bookchainfe.model.CartAddRequest;
+import com.hofang.bookchainfe.model.ChatContext;
 import com.hofang.bookchainfe.model.Review;
 import com.hofang.bookchainfe.model.ReviewRequest;
 import com.hofang.bookchainfe.model.UploadResponse;
@@ -34,6 +35,7 @@ import com.google.gson.JsonObject;
 import com.hofang.bookchainfe.network.ApiConfig;
 import com.hofang.bookchainfe.network.CartApiService;
 import com.hofang.bookchainfe.network.ReviewApiService;
+import com.hofang.bookchainfe.ui.chatbot.FloatingChatButtonHelper;
 import com.hofang.bookchainfe.utils.TokenManager;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -99,6 +101,15 @@ public class BookDetailFragment extends Fragment implements ReviewAdapter.OnRevi
         loadBookData();
         setupReviews();
         setupListeners();
+        
+        // Add floating chat button - will be configured with book context after loadBookData
+        if (getArguments() != null) {
+            String bookId = getArguments().getString("bookId");
+            String title = getArguments().getString("title");
+            ChatContext chatContext = new ChatContext("Chi tiết sách", bookId, title);
+            ViewGroup parentView = (ViewGroup) requireActivity().findViewById(android.R.id.content);
+            FloatingChatButtonHelper.addFloatingChatButton(requireActivity(), parentView, chatContext);
+        }
     }
 
     private void initViews(View view) {

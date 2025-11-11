@@ -22,6 +22,7 @@
     <color name="primary_dark">#059669</color>
     
     <!-- Gray Colors -->
+    <color name="gray">#808080</color>
     <color name="gray_300">#D1D5DB</color>
     <color name="gray_400">#9CA3AF</color>
     <color name="gray_500">#6B7280</color>
